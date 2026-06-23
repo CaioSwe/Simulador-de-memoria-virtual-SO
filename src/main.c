@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
     ////////////////////////////////////////////////
 
     // BIN (BACKING STORE.bin)
-    const char* fPathBin = "BACKING STORE.bin";
+    const char* fPathBin = "BACKING_STORE.bin";
 
     // ADDR (addresses.txt)
     const char* fPathAddr = strcatcat(paths[ADDR], "");
