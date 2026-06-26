@@ -1,10 +1,12 @@
-#include "fileManager.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#include "lista.h"
+#include "fila.h"
+#include "fileManager.h"
+#include "LRU.h"
+#include "priorityQueue.h"
 
 typedef enum TYPES {
     ADDR,
@@ -18,7 +20,7 @@ int main(int argc, char* argv[]){
     char** paths = calloc(3, sizeof(char*));
 
     if(argc < 4){
-        printf(" [ERRO] Número de parâmetros fornecidos não corresponde com o programa. ");
+        printf(" [ERRO]: Number of parameters is invalid. \n");
         for(int i = 1; i < 3; i++) free(paths[i]);
         free(paths);
         return 1;
@@ -43,9 +45,9 @@ int main(int argc, char* argv[]){
     paths[ADDR] = newPathAddr;
 
     // Lista todos os parâmetros fornecidos:
-    printf("%-12s: %s\n", "Arquivo de endereços", paths[ADDR]);
-    printf("%-12s: %s\n", "Quantidade de quadros", paths[FRAMES]);
-    printf("%-12s: %s\n", "Tipo de algoritmo de substituição de página", paths[SUBSTYPE]);
+    printf("%-12s: %s\n", "Addresses file", paths[ADDR]);
+    printf("%-12s: %s\n", "Frames quantity", paths[FRAMES]);
+    printf("%-12s: %s\n", "Page replacement algorithm", paths[SUBSTYPE]);
     
     // (3) Lendo o arquivo de endereços (addresses.txt)
     ////////////////////////////////////////////////
@@ -57,16 +59,16 @@ int main(int argc, char* argv[]){
     const char* fPathAddr = strcatcat(paths[ADDR], "");
 
     // SAIDA (correct.txt)
-    const char* fOutputPathAddr = "correct.txt";
+    const char* fOutputPathAddr = "../files/correct.txt";
 
     // Abre o caminho do output (correct.txt) em modo de escrita
     FILE* fSaida = fopen(fOutputPathAddr, "w");
     printf("\nEscrevendo no arquivo: %s\n", fOutputPathAddr);
-    fprintf(fSaida, " == INICIO DA EXECUÇÃO == \n");
+    fprintf(fSaida, " == BEGINING OF EXECUTION == \n");
 
-    processAddrFile(fPathBin, fPathAddr, fSaida, fOutputPathAddr);
+    // processAddrFile(fPathBin, fPathAddr, fSaida, fOutputPathAddr);
     
-    fprintf(fSaida, " == FIM DA EXECUÇÃO == ");
+    fprintf(fSaida, " == END OF EXECUTION == ");
     fclose(fSaida);
 
     //
@@ -77,7 +79,7 @@ int main(int argc, char* argv[]){
     for(int i = 1; i < 4; i++) free(paths[i]);
     free(paths);
     
-    printf("\n [SUCESSO] Programa finalizado. \n");
+    printf("\n [SUCCESS] Program finalized \n");
 
     return 0;
 }
