@@ -3,16 +3,43 @@
 #include <string.h>
 #include <time.h>
 
-#include "fila.h"
 #include "fileManager.h"
-#include "LRU.h"
+
 #include "priorityQueue.h"
+#include "queue.h"
 
 typedef enum TYPES {
     ADDR,
     FRAMES,
     SUBSTYPE
 } TYPES;
+
+///////////////
+
+bool compareAddresses(void* ad1, void* ad2){
+    return *(int*)ad1 == *(int*)ad2;
+}
+
+// Algoritmos LRU e FIFO para substituicao de paginas na TLB e Tabela de Paginasdo MemoryManager
+
+// Se a fila de prioridade estiver cheia, e removido o elemento de menor prioridade (quem apareceu menos), e e' substituido pelo endereco do parametro
+static void LRU(PriorityQueue pQueue, int addressToInsert, void* extra){
+    if(pQueue == NULL) pQueue = criaPriorityQueue(*((int*)extra));
+
+    if(isPriorityQueueCheia(pQueue)){
+        int addressRemoved = *(int*)removerMinPriorityQueue(pQueue);
+        inserirPriorityQueue(pQueue, addressToInsert, 1.0f);
+    }
+    else{
+        increasePriorityQueue(pQueue, addressToInsert, compareAddresses);
+    }
+}
+
+static void FIFO(Queue* queue, int addressToInsert, void* extra){
+    if(queue == NULL) queue = initQueue(*((int*)extra));
+
+
+}
 
 ///////////////
 
@@ -30,7 +57,7 @@ int main(int argc, char* argv[]){
 
     /*
         Pega todos os nomes dos arquivos base e organiza na variável paths
-        paths[0] = endereços
+        paths[0] = arquivo de endereços
         paths[1] = quadros
         paths[2] = tipo de algoritmo de substituição de página
     */
@@ -40,7 +67,12 @@ int main(int argc, char* argv[]){
         paths[param] = malloc(strlen(argv[i]) + 1);
         strcpy(paths[param], argv[i]);
     }
-    
+
+    if(strcmp("LRU", paths[SUBSTYPE]) != 0 || strcmp("FIFO", paths[SUBSTYPE]) != 0){
+        // Erro, algoritmo de substituição não é válido para este trabalho.
+        return 0;
+    }
+
     // Coloca ".txt" no arquivo de endereços caso não tenha
     char* newPathAddr = (char*)changeExtension(paths[ADDR], ".txt");
     free(paths[ADDR]);
@@ -68,7 +100,7 @@ int main(int argc, char* argv[]){
     printf("\nWriting on file: %s\n", fOutputPathAddr);
     fprintf(fSaida, " == BEGINING OF EXECUTION == \n");
 
-    // processAddrFile(fPathBin, fPathAddr, fSaida, fOutputPathAddr);
+    // processAddrFile(fPathBin, fPathAddr, fSaida);
     
     fprintf(fSaida, " == END OF EXECUTION == ");
     fclose(fSaida);
