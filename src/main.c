@@ -17,6 +17,8 @@ typedef enum TYPES {
 ///////////////
 
 int main(int argc, char* argv[]){
+    printf("\n");
+
     char** paths = calloc(3, sizeof(char*));
 
     if(argc < 4){
@@ -63,7 +65,7 @@ int main(int argc, char* argv[]){
 
     // Abre o caminho do output (correct.txt) em modo de escrita
     FILE* fSaida = fopen(fOutputPathAddr, "w");
-    printf("\nEscrevendo no arquivo: %s\n", fOutputPathAddr);
+    printf("\nWriting on file: %s\n", fOutputPathAddr);
     fprintf(fSaida, " == BEGINING OF EXECUTION == \n");
 
     // processAddrFile(fPathBin, fPathAddr, fSaida, fOutputPathAddr);
@@ -81,5 +83,6 @@ int main(int argc, char* argv[]){
     
     printf("\n [SUCCESS] Program finalized \n");
 
+    printf("\n");
     return 0;
 }
