@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
     char** paths = calloc(3, sizeof(char*));
 
     if(argc < 4){
-        printf(" [ERRO]: Number of parameters is invalid. \n");
+        printf(" [ERROR]: Number of parameters is invalid. \n");
         for(int i = 1; i < 3; i++) free(paths[i]);
         free(paths);
         return 1;
