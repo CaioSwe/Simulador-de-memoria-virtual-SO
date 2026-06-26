@@ -15,12 +15,16 @@ ifeq ($(OS),Windows_NT)
 	LIBS = -lm -lssp
 # -lm:   Biblioteca matemática para funções como sqrt, pow, etc.
 # -lssp: Biblioteca para proteção contra estouro de pilha (stack protector)
+    OBJETOS_DEL = $(subst /,\\,$(OBJETOS))
+# Converte as barras / em \ para o comando 'del' do Windows não quebrar
 else
     # Comandos para Linux / macOS / WSL
     RM   = rm -f
     EXEC = 
 	LIBS = -lm
 # -lm:   Biblioteca matemática para funções como sqrt, pow, etc.
+    OBJETOS_DEL = $(OBJETOS)
+# No Linux, mantém as barras normais
 endif
 # =============================================================================================== #
 
@@ -43,14 +47,14 @@ LDFLAGS =
 # ================================= COMPILAÇÃO PROJ. PRINCIPAL ================================== #
 # Arquivos-fonte e objetos
 PATHS = src/
-OBJETOS = main.o fila.o fileManager.o LRU.o priorityQueue.o
+OBJETOS = $(PATHS)main.o $(PATHS)fila.o $(PATHS)fileManager.o $(PATHS)LRU.o $(PATHS)priorityQueue.o
 
-main.o: main.c fila.h fileManager.h LRU.h priorityQueue.h
+main.o: $(PATHS)main.c $(PATHS)fila.h $(PATHS)fileManager.h $(PATHS)LRU.h $(PATHS)priorityQueue.h
 
-fila.o: fila.c fila.h
-fileManager.o: fileManager.c fileManager.h
-LRU.o: LRU.c LRU.h
-priorityQueue.o: priorityQueue.c priorityQueue.h
+fila.o: 			$(PATHS)fila.c $(PATHS)fila.h
+fileManager.o: 		$(PATHS)fileManager.c $(PATHS)fileManager.h
+LRU.o: 				$(PATHS)LRU.c $(PATHS)LRU.h
+priorityQueue.o:	$(PATHS)priorityQueue.c $(PATHS)priorityQueue.h
 
 
 
@@ -84,7 +88,10 @@ clean:
 	@echo.
 
 	@echo Limpando os arquivos objetos e o executavel...
-	$(RM) $(OBJETOS) $(PROJ_NAME)$(EXEC)
+
+	@echo.
+
+	$(RM) $(OBJETOS_DEL) $(PROJ_NAME)$(EXEC)
 	@echo Arquivos objetos e executavel limpos com sucesso!
 
 	@echo.
