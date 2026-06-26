@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "fila.h"
+#include "queue.h"
 
 
 
@@ -30,6 +30,7 @@ typedef struct queue{
     Node* front;
     Node* rear;
     int size;
+    int maxSize;
 } Queue;
 
 
@@ -37,7 +38,7 @@ typedef struct queue{
 
 
 /*                                                  FUNÇÕES PRINCIPAIS                                                  */
-Queue* initQueue(){
+Queue* initQueue(int tam){
     // 1: Aloca memória dinâmicamente para a fila
     Queue* queue = (Queue*)malloc(sizeof(Queue));
 
@@ -52,6 +53,7 @@ Queue* initQueue(){
     queue->front = NULL;
     queue->rear  = NULL;
     queue->size  = 0;
+    queue->maxSize = tam;
 
     // 4: Retorna o ponteiro para a fila recém-criada
     printf("[SUCCESS]\n");
@@ -64,6 +66,12 @@ void insertElem(Queue* queue, int addr){
     if(queue == NULL){
         printf("[ERROR]\n");
         printf("in insertElem (fila.c): Queue invalid. Pointer is NULL\n");
+        return;
+    }
+
+    if(queue->maxSize == queue->size){
+        printf("[ERROR]\n");
+        printf("in insertElem (fila.c): Max size for queue has been reached\n");
         return;
     }
 
@@ -174,5 +182,32 @@ int sizeofQueue(Queue* queue){
 
     // 2: Retorna o tamanho atual da fila
     return queue->size;
+}
+
+bool isQueueFull(Queue* queue){
+    if(queue == NULL){
+        printf("[ERROR]\n");
+        printf("in sizeofQueue (fila.c): Queue invalid. Pointer is NULL\n");
+        return -1;
+    }
+
+    return queue->size == queue->maxSize;
+}
+
+bool isInQueue(Queue* queue, compararItens compFunc, void* item){
+    if(queue == NULL){
+        printf("[ERROR]\n");
+        printf("in sizeofQueue (fila.c): Queue invalid. Pointer is NULL\n");
+        return -1;
+    }
+
+    Node* temp = queue->front;
+
+    while(temp != NULL){
+        if(compFunc(temp, item)) return true;
+        temp = temp->next;
+    }
+
+    return false;
 }
 /*######################################################################################################################*/

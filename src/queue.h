@@ -1,5 +1,7 @@
-#ifndef _FILA_H
-#define _FILA_H
+#ifndef _QUEUE_H
+#define _QUEUE_H
+
+#include "fileManager.h"
 
 typedef struct node Node;
 typedef struct queue Queue;
@@ -57,5 +59,21 @@ void freeQueue(Queue* queue);
  * @return      O tamanho da fila.
  */
 int sizeofQueue(Queue* queue);
+
+/**
+ * Esta função retorna um booleano indicando se a fila esta cheia ou nao.
+ * @param queue Um ponteiro para a fila a ser verificada.
+ * @return      Verdadeiro se fila esta cheia, falso caso contrario.
+ */
+bool isQueueFull(Queue* queue);
+
+/**
+ * Esta função retorna um booleano indicando se o elemento passado esta presente na fila.
+ * @param queue Um ponteiro para a fila a ser verificada a presenca do valor.
+ * @param compFunc Funcao de comparacao de cada item
+ * @param item Item para ser verificado
+ * @return      Verdadeiro se o valor esta na fila, falso caso contrario.
+ */
+bool isInQueue(Queue* queue, compararItens compFunc, void* item);
 /*######################################################################################################################*/
 #endif
