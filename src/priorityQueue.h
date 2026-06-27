@@ -51,6 +51,16 @@ void inserirPriorityQueue(PriorityQueue priorityQueue, PriorityItem valor, doubl
 bool changePriorityQueue(PriorityQueue priorityQueue, PriorityItem valor, double prioridade, compararItens compFunc);
 
 /**
+ * @brief Promove os elementos da PriorityQueue, caso o elemento já esteja presente.
+ * @param PriorityQueue PriorityQueue a ter a prioridade alterada.
+ * @param address Ponteiro para um valor a ser acessado na PriorityQueue.
+ * @param compareFunc Ponteiro para uma funcao externa de comparacao dos itens dentro da fila.
+ * @param newPriority Nova prioridade do item a ser promovido.
+ * @return Nao ha' retorno de algum valor.
+ */
+void promoteElementeInPriorityQueue(PriorityQueue PriorityQueue, PriorityItem address, compararItens compareFunc, double newPriority);
+
+/**
  * @brief Remove o elemento de menor prioridade da PriorityQueue.
  * @param priorityQueue PriorityQueue a ser retidada o valor.
  * @return Retorna um ponteiro para o elemento retirado.

@@ -111,6 +111,31 @@ bool changePriorityQueue(PriorityQueue priorityQueue, PriorityItem valor, double
     return false;
 }
 
+void promoteElementeInPriorityQueue(PriorityQueue priorityQueue, PriorityItem address, compararItens compareFunc, double newPriority){
+    if(priorityQueue == NULL){
+        printf("\n - promoteElementeInPriorityQueue() -> Fila de prioridade nula passada. -");
+        return;
+    }
+    
+    PriorityQueueStr* pq = (PriorityQueueStr*)priorityQueue;
+
+    // Procura o valor no heap.
+    for(int i = 0; i < pq->qPreenchida; i++){
+        if(compareFunc(pq->itens[i].pItem, address)){
+            // Caso ache, muda a prioridade e ordena o heap.
+            double prevPrio = pq->itens[i].prioridade;
+            pq->itens[i].prioridade += newPriority;
+            
+            if(newPriority < prevPrio) checkPriorityUp(pq, i);
+            else checkPriorityDown(pq, i);
+            
+            return;
+        }
+    }
+
+    printf("\n - promoteElementeInPriorityQueue() -> Elemento nao encontrado na fila de prioridade. -");
+}
+
 PriorityItem removerMinPriorityQueue(PriorityQueue priorityQueue){
     if(priorityQueue == NULL){
         printf("\n - removerPriorityQueue() -> Fila de prioridade nula passada. -");
