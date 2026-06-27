@@ -4,35 +4,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "types.h"
+
 /**
  * Cabeçalho dedicado às funções relacionadas a arquivos.
  * Declarações de ponteiros de funções com assinatura padrão, mudança de extensão de uma String,
  * concatenação de Strings, truncamento, etc.
 */
-
-/**
- * @brief Funcao de liberacao de um item qualquer.
- * @return Nao ha' retorno de algum valor.
- */
-typedef void (*freeFunc) (void* item, void* extra);
-
-/**
- * @brief Funcao de visualizacao de qualquer tipo de informacao.
- * @return Retorna um ponteiro de caracter (String).
- */
-typedef char* (*printFunc) (void* item, void* extra);
-
-/**
- * @brief Compara dois itens e verifica sua igualdade.
- * @return Retorna um booleano indicando a igualdade dos itens comparados.
- */
-typedef bool (*compararItens) (void* itemO, void* itemC);
-
-/**
- * @brief Funcao para adiquirir um valor nume'rico de uma estrutura especifica.
- * @return Retorna um valor nume'rico (Double).
- */
-typedef double (*getNumberValue) (void* item, void* extra);
 
 void freeReg(void* item, void* extra);
 
