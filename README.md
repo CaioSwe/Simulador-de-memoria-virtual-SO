@@ -9,8 +9,8 @@ Alunos:
 
 # Compilação
 C:\ ... \Simulador-de-memoria-virtual-SO
-.bash *compilador utilizado (mingw32-make)
-./tso ...
+.bash (compilador utilizado | mingw32-make)
+./tso ../files/addresses.txt (número de quadros) (algoritmo de sibstituição)
 
 
 
