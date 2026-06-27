@@ -26,9 +26,10 @@ typedef struct queue Queue;
 /*                                                  FUNÇÕES PRINCIPAIS                                                  */
 /**
  * Esta função inicializa uma nova fila vazia.
- * @return Um ponteiro para a fila recém-criada.
+ * @param tam O tamanho máximo da fila.
+ * @return    Um ponteiro para a fila recém-criada.
  */
-Queue* initQueue();
+Queue* initQueue(int tam);
 /**
  * Esta função insere um novo elemento na fila.
  * @param queue Um ponteiro para a fila onde o elemento será inserido.

@@ -25,7 +25,6 @@ typedef struct node{
     int addr;
     struct node* next;
 } Node;
-
 typedef struct queue{
     Node* front;
     Node* rear;
