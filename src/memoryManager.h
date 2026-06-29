@@ -55,6 +55,14 @@ MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameS
 void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementAlgorithm fPageReplacementAlg, Structure pageTableStructure, runThroughItems runFunc, highFreeFunc fFunc);
 
 /**
+ * @brief Invalida uma entrada na TLB, caso a página correspondente tenha sido removida da memória.
+ * @param item A entrada da TLB a ser invalidada.
+ * @param extra Um ponteiro para dados extras (não utilizado).
+ * @return Nao ha retorno de algum valor.
+ */
+static void memoryManager_invalidateTLBEntry(Info item, void* extra);
+
+/**
  * @brief Vincula uma estrutura de cache TLB ao gerenciador de memoria.
  * @param memMng O objeto gerenciador de memoria a ser modificado.
  * @param fPageReplacementAlg Funcao do algoritmo de substituicao de entradas na TLB.
