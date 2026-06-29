@@ -7,14 +7,6 @@
 #include "types.h"
 
 /**
- * Cabeçalho dedicado às funções relacionadas a arquivos.
- * Declarações de ponteiros de funções com assinatura padrão, mudança de extensão de uma String,
- * concatenação de Strings, truncamento, etc.
-*/
-
-void freeReg(void* item, void* extra);
-
-/**
  * @brief Altera a extensao de um arquivo.
  * @param path String original com um caractere '.' presente.
  * @param ext Nova extensao que sera' aplicada no path.
@@ -37,14 +29,6 @@ const char* trimString(const char* string, int n);
  * @return Retorna uma nova string resultante da concatenação de cat1 e cat2, respectivamente.
  */
 const char* strcatcat(const char* cat1, const char* cat2);
-
-/**
- * @brief Checa se a alocacao foi feita corretamente.
- * @param var Varia'vel 'a ser inspecionada.
- * @param text Mensagem de erro caso ocorreu falha na alocacao.
- * @return Retorna um valor booleano: True, caso houve um erro. False, caso contra'rio.
- */
-bool checkAllocation(void* var, const char* text);
 
 /**
  * @brief Copia de um arquivo para o outro.

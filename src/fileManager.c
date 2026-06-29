@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void freeReg(void* item, void* extra){
-    free(item);
-}
-
 const char* changeExtension(const char* path, const char* ext){
     if (path == NULL || ext == NULL){
         printf("\n - changeExtension() -> Um ou mais valores nulos passados como parametro. -");
@@ -79,15 +75,6 @@ const char* strcatcat(const char* cat1, const char* cat2){
 
     // Retorna a string concatenada.
     return (const char*)resultCat;
-}
-
-bool checkAllocation(void* var, const char* text){
-    // Caso a varia'vel passada for nula, lanca uma mensagem de erro.
-    if(var == NULL){
-        printf("\n[!] ERRO DE ALOCACAO: %s", text);
-        return true;
-    }
-    return false;
 }
 
 void copyFile(FILE* to, const char* from){
