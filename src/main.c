@@ -7,68 +7,77 @@
 
 #include "priorityQueue.h"
 #include "queue.h"
-#include "lista.h"
 
 #include "addressesManager.h"
 
 /////////////////////////////
 
-bool compareAddresses(void* ad1, void* ad2){
-    return *(int*)ad1 == *(int*)ad2;
-}
+// SUBSTITUICAO DE PAGINA
 
-// Funcoes de print
+static bool LRU(PriorityQueue pQueue, Info pageInfo, bool insert, void* extra){
+    static double lruClock = 0.0f;
 
-static void printAddressMemMng(PriorityItem item, void* extra){
-    MemoryManager memMng = (MemoryManager)extra;
-    memoryManager_printAddressInfo(memMng, stdin, item);
-}
-
-static void pLRU(PriorityQueue pQueue, void* extra){
-    runThorughPriorityQueue(pQueue, printAddressMemMng, extra);
-}
-
-static void pFIFO(Queue* queue, void* extra){
-    runThroughQueue(queue, printAddressMemMng, extra);
-}
-
-// Algoritmos LRU e FIFO para substituicao de paginas na TLB e Tabela de Paginasdo MemoryManager
-
-// Se a fila de prioridade estiver cheia, e removido o elemento de menor prioridade (quem apareceu menos), e e' substituido pelo endereco do parametro
-static bool LRU(PriorityQueue pQueue, int address, bool insert, void* extra){
     // 1: Verifica o bool insert
-    // 1.1: Se for true, insere o endereço na fila de prioridade
+    // 1.1: Se for true, insere o endereço na fila de prioridade    
     if(insert){
-        if(!isInPriorityQueue(pQueue, address, compareAddresses)){
-            if(isPriorityQueueCheia(pQueue)){int addressRemoved = *(int*)removerMinPriorityQueue(pQueue);}
-            inserirPriorityQueue(pQueue, address, 1.0f);
+        if(!isInPriorityQueue(pQueue, pageInfo, memoryManager_comparePagesInfo)){
+            if(isPriorityQueueCheia(pQueue)){
+                Info removedPageInfo = removerMinPriorityQueue(pQueue);
+                if(extra != NULL) *(Info*)extra = removedPageInfo;
+
+                int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
+                printf("\n %d", frameNumber);
+                memoryManager_setFrameNumber(pageInfo, frameNumber);
+            }
+            inserirPriorityQueue(pQueue, pageInfo, (float)(++lruClock));
+            return false;
         }
         else{
-            promoteElementeInPriorityQueue(pQueue, address, compareAddresses, 1.0f);
+            promoteElementeInPriorityQueue(pQueue, pageInfo, memoryManager_comparePagesInfo, (float)(++lruClock));
             return true;
         }
     }
     // 1.2: Se for false, verifica se está na fila de prioridade
     else{
-        return isInPriorityQueue(pQueue, address, compareAddresses);
+        return isInPriorityQueue(pQueue, pageInfo, memoryManager_comparePagesInfo);
     }
 }
 
-static bool FIFO(Queue* queue, int address, bool insert, void* extra){
+static bool FIFO(Queue queue, Info pageInfo, bool insert, void* extra){
     // 1: Verifica o bool insert
     // 1.1: Se for true, insere o endereço na fila
     if(insert){
-        if(!isInQueue(queue, compareAddresses, address)){
-            if(isQueueFull(queue)) {int removedAddress = removeElem(queue);}
-            insertElem(queue, address);
+        if(!isInQueue(queue, memoryManager_comparePagesInfo, pageInfo)){
+            if(isQueueFull(queue)){
+                Info removedPageInfo = removeElem(queue);
+                if(extra != NULL) *(Info*)extra = removedPageInfo;
+
+                int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
+                memoryManager_setFrameNumber(pageInfo, frameNumber);
+            }
+            insertElem(queue, pageInfo);
+            return false;
         }
-        else {return true;}
+        else{
+            return true;
+        }
     }
     // 1.2: Se for false, verifica se está na fila
     else{
-        return isInQueue(queue, compareAddresses, address);
+        return isInQueue(queue, memoryManager_comparePagesInfo, pageInfo);
     }
+}
 
+// PRINT
+
+static const char* printMemoryContent(Item item, void* extra){
+    signed char c = *(signed char*)item;
+
+    static char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%d", c);
+    const char* p = buffer;
+
+    return p;
 }
 
 //////////////////////////////
@@ -89,7 +98,6 @@ int main(int argc, char* argv[]){
 
     if(argc < 4){
         printf(" [ERROR]: Number of parameters is invalid. \n");
-        for(int i = 1; i < 3; i++) free(paths[i]);
         free(paths);
         return 1;
     }
@@ -107,8 +115,10 @@ int main(int argc, char* argv[]){
         strcpy(paths[param], argv[i]);
     }
 
-    if(strcmp("LRU", paths[SUBSTYPE]) != 0 || strcmp("FIFO", paths[SUBSTYPE]) != 0){
+    if(strcmp("LRU", paths[SUBSTYPE]) != 0 && strcmp("FIFO", paths[SUBSTYPE]) != 0){
         // Erro, algoritmo de substituição não é válido para este trabalho.
+        for(int i = 0; i < 3; i++) free(paths[i]);
+        free(paths);
         return 0;
     }
 
@@ -125,44 +135,53 @@ int main(int argc, char* argv[]){
     // (2) Criando o gerenciador de memória
     ////////////////////////////////////////////////
 
-    const char* binPath = "../files/BACKING_STORE.bin";
-    int frameCount = paths[FRAMES]; 
+    const char* binPath = "./files/BACKING_STORE.bin";
+    int frameCount = atoi(paths[FRAMES]); 
     int frameSize  = 256; // Tamanho do quadro de memória (em bytes) = 256 bytes = 2^8 bytes
 
-    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize);
+    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize, printMemoryContent);
+
+    printf("\n = %p =", memMng);
 
     PageReplacementAlgorithm strRep = NULL;
+
     Structure strPageTable = NULL;
     Structure strTLB = NULL;
+    
+    runThroughItems runFunc = NULL;
+    highFreeFunc fAlg = NULL;
 
     // Verifica qual algoritmo de substituição de páginas será utilizado e
     // Cria a estrutura de dados correspondente (fila de prioridade para LRU ou fila simples para FIFO)
     if(strcmp(paths[SUBSTYPE], "LRU") == 0){
-        strPageTable = createPriorityQueue(frameCount);
-        strTLB = createPriorityQueue(frameCount);
+        strPageTable = criaPriorityQueue(frameCount);
+        strTLB = criaPriorityQueue(16);
         strRep = LRU;
+        runFunc = runThroughPriorityQueue;
+        fAlg = destroiPriorityQueue;
     }
     else{
         strPageTable = initQueue(frameCount);
-        strTLB = initQueue(frameCount);
+        strTLB = initQueue(16);
         strRep = FIFO;
+        runFunc = runThroughQueue;
+        fAlg = freeQueue;
     }
 
+    int pageTableSize = 65536 / frameSize;
+
     // Adiciona a estrutura de dados criada ao gerenciador de memória
-    memoryManager_addPageTable(memMng, strRep, strPageTable);
-    memoryManager_addTLB(memMng, strRep, strTLB);
+    memoryManager_addPageTable(memMng, pageTableSize, strRep, strPageTable, runFunc, fAlg);
+    memoryManager_addTLB(memMng, strRep, strTLB, runFunc, fAlg);
 
     // (3) Lendo o arquivo de endereços (addresses.txt)
     ////////////////////////////////////////////////
-
-    // BIN (BACKING STORE.bin)
-    const char* fPathBin = "BACKING_STORE.bin";
 
     // ADDR (addresses.txt)
     const char* fPathAddr = strcatcat(paths[ADDR], "");
 
     // SAIDA (correct.txt)
-    const char* fOutputPathAddr = "../files/correct.txt";
+    const char* fOutputPathAddr = "./files/correct.txt";
 
     // Abre o caminho do output (correct.txt) em modo de escrita
     FILE* fSaida = fopen(fOutputPathAddr, "w");
@@ -174,14 +193,17 @@ int main(int argc, char* argv[]){
     fprintf(fSaida, " == END OF EXECUTION == ");
     fclose(fSaida);
 
-    //
-    // Estatisticas ...
-    //
+    ////////////////////////////////////////////
+    // Free's
+
+    memoryManager_free(memMng, NULL);
 
     // Paths
-    for(int i = 1; i < 4; i++) free(paths[i]);
+    for(int i = 0; i < 3; i++) free(paths[i]);
     free(paths);
     
+    ////////////////////////////////////////////
+
     printf("\n [SUCCESS] Program finalized \n");
 
     printf("\n");
