@@ -111,7 +111,7 @@ bool changePriorityQueue(PriorityQueue priorityQueue, PriorityItem valor, double
     return false;
 }
 
-void promoteElementeInPriorityQueue(PriorityQueue priorityQueue, PriorityItem address, compararItens compareFunc, double newPriority){
+void promoteElementeInPriorityQueue(PriorityQueue priorityQueue, PriorityItem item, compararItens compareFunc, double newPriority){
     if(priorityQueue == NULL){
         printf("\n - promoteElementeInPriorityQueue() -> Fila de prioridade nula passada. -");
         return;
@@ -121,7 +121,7 @@ void promoteElementeInPriorityQueue(PriorityQueue priorityQueue, PriorityItem ad
 
     // Procura o valor no heap.
     for(int i = 0; i < pq->qPreenchida; i++){
-        if(compareFunc(pq->itens[i].pItem, address)){
+        if(compareFunc(pq->itens[i].pItem, item)){
             // Caso ache, muda a prioridade e ordena o heap.
             double prevPrio = pq->itens[i].prioridade;
             pq->itens[i].prioridade += newPriority;
@@ -206,6 +206,19 @@ bool isInPriorityQueue(PriorityQueue priorityQueue, PriorityItem item, compararI
     }
 
     return false;
+}
+
+void runThroughPriorityQueue(PriorityQueue priorityQueue, itemFunc iFunc, void* extra){
+    if(priorityQueue == NULL){
+        printf("\n - isInPriorityQueue() -> Fila de prioridade nula passada. -");
+        return;
+    }
+
+    PriorityQueueStr* pq = (PriorityQueueStr*)priorityQueue;
+
+    for(int i = 0; i < pq->qPreenchida; i++){
+        iFunc(pq->itens[i].pItem, extra);
+    }
 }
 
 bool isPriorityQueueVazia(PriorityQueue priorityQueue){
