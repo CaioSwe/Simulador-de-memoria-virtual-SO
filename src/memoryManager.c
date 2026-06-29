@@ -186,7 +186,7 @@ void memoryManager_printAddressInfo(MemoryManager memMng, Info item, int address
     int physicalAddress = (pInfo.frameNumber * mMng->frameSize) + offset;
     const char* value = pFunc(&pageContent, NULL);
 
-    fprintf(fOutput, "Endereço virtual: %d | Endereço físico: %d | Conteúdo: %s\n", address, physicalAddress, value);
+    fprintf(fOutput, "Endereço virtual: %5d | Endereço físico: %4d | Conteúdo: %s\n", address, physicalAddress, value);
 }
 
 bool memoryManager_isInTLB(MemoryManager memMng, int address){

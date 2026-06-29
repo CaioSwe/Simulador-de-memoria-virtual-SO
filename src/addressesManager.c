@@ -73,7 +73,7 @@ void processAddrFile(MemoryManager memMng, const char* fPathAddr, FILE* fSaida){
     fprintf(fSaida, "\n[%d] TLB hits", hit);
     fprintf(fSaida, "\n[%d] TLB misses", miss);
     fprintf(fSaida, "\n[%d] Page faults", fault);
-    fprintf(fSaida, "\n ============================= ");
+    fprintf(fSaida, "\n ============================= \n\n\n\n");
 
     fclose(addrFile);
 }
