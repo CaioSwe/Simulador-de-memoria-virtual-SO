@@ -47,14 +47,13 @@ LDFLAGS =
 # ================================= COMPILAÇÃO PROJ. PRINCIPAL ================================== #
 # Arquivos-fonte e objetos
 PATHS = src/
-OBJETOS = $(PATHS)main.o $(PATHS)addressManagers.o $(PATHS)fileManager.o $(PATHS)lista.o $(PATHS)memomyManager.o $(PATHS)priorityQueue.o $(PATHS)queue.o $(PATHS)types.o
+OBJETOS = $(PATHS)main.o $(PATHS)addressesManager.o $(PATHS)fileManager.o $(PATHS)memoryManager.o $(PATHS)priorityQueue.o $(PATHS)queue.o $(PATHS)types.o
 
-main.o: $(PATHS)main.c $(PATHS)addressManagers.h $(PATHS)fileManager.h $(PATHS)memomyManager.h $(PATHS)priorityQueue.h $(PATHS)queue.h
+main.o: $(PATHS)main.c $(PATHS)addressesManager.h $(PATHS)fileManager.h $(PATHS)memoryManager.h $(PATHS)priorityQueue.h $(PATHS)queue.h
 
-addressManagers.o:	$(PATHS)addressManagers.c $(PATHS)addressManagers.h
+addressesManager.h:	$(PATHS)addressesManager.c  $(PATHS)addressesManager.h
 fileManager.o: 		$(PATHS)fileManager.c 	  $(PATHS)fileManager.h
-lista.o: 			$(PATHS)lista.c 	  	  $(PATHS)lista.h
-memoryManagers.o: 	$(PATHS)memomyManager.c	  $(PATHS)memomyManager.h
+memoryManagers.o: 	$(PATHS)memoryManagers.c  $(PATHS)memoryManagers.h
 priorityQueue.o: 	$(PATHS)priorityQueue.c   $(PATHS)priorityQueue.h
 queue.o: 			$(PATHS)queue.c 		  $(PATHS)queue.h
 types.o: 			$(PATHS)types.c 		  $(PATHS)types.h
