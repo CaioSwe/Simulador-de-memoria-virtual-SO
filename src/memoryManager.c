@@ -28,7 +28,8 @@ typedef struct TLBStr{
     PageReplacementAlgorithm fPageReplacementAlg;
     runThroughItems runFunc;
     highFreeFunc fFunc;
-    
+    removeListItemFunc removeFunc;
+
     Structure dataStructure;
 } TLBStr;
 
@@ -146,7 +147,7 @@ static void memoryManager_invalidateTLBEntry(Info item, void* extra){
     }
 }
 
-void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc){
+void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc, removeListItemFunc removeFunc){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
 
     if(mMng == NULL){
@@ -155,6 +156,7 @@ void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageRe
     }
 
     mMng->TLB = memoryManager_InitTLB(fPageReplacementAlg, tlbStructure, runFunc, fFunc);
+    if(mMng->TLB != NULL) {mMng->TLB->removeFunc = removeFunc;}
 }
 
 static void memoryManager_printAddressTableInfo(Info item, FILE* fOutput){
@@ -326,9 +328,14 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         mMng->pageTable->entries[removedPage].ValidatingBit = 0;
 
         // Se a TLB estiver presente, invalida a entrada correspondente à página removida na TLB
-        if(hasTLB){
-            runThroughItems runFunc = mMng->TLB->runFunc;
-            runFunc(mMng->TLB->dataStructure, memoryManager_invalidateTLBEntry, &removedPage);
+        if(hasTLB && mMng->TLB->removeFunc != NULL){
+            // Cria uma estrutura dummy para passar como item a ser removido da TLB
+            // e define o número da página removida na estrutura dummy
+            PageInfoStr dummy;
+            dummy.pageNumber = removedPage;
+
+            // Executa a remoção física real varrendo a estrutura, localizando e dando free() no nó
+            mMng->TLB->removeFunc(mMng->TLB->dataStructure, &dummy, memoryManager_comparePagesInfo);
         }
     }
 

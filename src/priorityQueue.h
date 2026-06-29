@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "fileManager.h"
+#include "memoryManager.h"
 
 /**
  * Mo'dulo especializado para a implementacao da fila de prioridade (Priority Queue).
@@ -67,6 +68,13 @@ void promoteElementeInPriorityQueue(PriorityQueue PriorityQueue, PriorityItem it
  */
 PriorityItem removerMinPriorityQueue(PriorityQueue priorityQueue);
 
+/**
+ * @brief Remove o elemento especificado da PriorityQueue.
+ * @param dataStructure Estrutura de dados (PriorityQueue) a ser removido o item.
+ * @param targetItem Item a ser removido da PriorityQueue.
+ * @param compareFunc Funcao de comparacao para encontrar o item na fila.
+ */
+void removeItemPriorityQueue(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info));
 /**
  * @brief Pega o elemento de menor prioridade da PriorityQueue sem retirar da fila.
  * @param priorityQueue PriorityQueue a ser pega o valor.

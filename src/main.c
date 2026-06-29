@@ -190,7 +190,7 @@ int main(int argc, char* argv[]){
     printf("\n\n\n");
 
 
-    
+
     /*                                              1: TRATA OS PARÂMETROS                                              */
     // Aloca memória para armazenar os caminhos dos arquivos fornecidos como argumentos de linha de comando.
     char** paths = calloc(3, sizeof(char*));
@@ -265,6 +265,7 @@ int main(int argc, char* argv[]){
     Structure strTLB                = NULL;
     runThroughItems runFunc         = NULL;
     highFreeFunc fAlg               = NULL;
+    removeListItemFunc removeFunc   = NULL;
 
     // 2.3: Verifica qual algoritmo de substituição de páginas será utilizado e
     // Cria a estrutura de dados correspondente (fila de prioridade para LRU ou fila simples para FIFO)
@@ -274,6 +275,7 @@ int main(int argc, char* argv[]){
         strRep       = LRU;
         runFunc      = runThroughPriorityQueue;
         fAlg         = destroiPriorityQueue;
+        removeFunc   = removeItemPriorityQueue;
     }
     else{
         strPageTable = initQueue(frameCount);
@@ -281,6 +283,7 @@ int main(int argc, char* argv[]){
         strRep       = FIFO;
         runFunc      = runThroughQueue;
         fAlg         = freeQueue;
+        removeFunc   = removeItemFila;
     }
 
     // 2.4: Calcula o tamanho da tabela de páginas com base no tamanho do quadro de memória (frameSize).
@@ -289,7 +292,7 @@ int main(int argc, char* argv[]){
     // 2.5: Adiciona a estrutura de dados criada ao gerenciador de memória inicializado, 
     // juntamente com o algoritmo de substituição de páginas escolhido.
     memoryManager_addPageTable(memMng, pageTableSize, strRep, strPageTable, runFunc, fAlg);
-    memoryManager_addTLB(memMng, strRep, strTLB, runFunc, fAlg);
+    memoryManager_addTLB(memMng, strRep, strTLB, runFunc, fAlg, removeFunc);
     /*##################################################################################################################*/
 
 
