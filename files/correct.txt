@@ -1004,8 +1004,8 @@ Endereço virtual: 45563 | Endereço físico:  507 | Conteúdo: 126
 Endereço virtual: 12107 | Endereço físico:  587 | Conteúdo: -46
 
  == STATISTICS OF EXECUTION == 
-[0] TLB hits
-[16] TLB misses
+[  0] TLB hits
+[ 16] TLB misses
 [984] Page faults
  ============================= 
 

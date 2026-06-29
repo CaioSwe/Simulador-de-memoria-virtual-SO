@@ -70,9 +70,9 @@ void processAddrFile(MemoryManager memMng, const char* fPathAddr, FILE* fSaida){
     ////////////////////////////
 
     fprintf(fSaida, "\n == STATISTICS OF EXECUTION == ");
-    fprintf(fSaida, "\n[%d] TLB hits", hit);
-    fprintf(fSaida, "\n[%d] TLB misses", miss);
-    fprintf(fSaida, "\n[%d] Page faults", fault);
+    fprintf(fSaida, "\n[%3d] TLB hits", hit);
+    fprintf(fSaida, "\n[%3d] TLB misses", miss);
+    fprintf(fSaida, "\n[%3d] Page faults", fault);
     fprintf(fSaida, "\n ============================= \n\n\n\n");
 
     fclose(addrFile);
