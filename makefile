@@ -49,14 +49,14 @@ LDFLAGS =
 PATHS = src/
 OBJETOS = $(PATHS)main.o $(PATHS)addressesManager.o $(PATHS)fileManager.o $(PATHS)memoryManager.o $(PATHS)priorityQueue.o $(PATHS)queue.o $(PATHS)types.o
 
-main.o: $(PATHS)main.c $(PATHS)addressesManager.h $(PATHS)fileManager.h $(PATHS)memoryManager.h $(PATHS)priorityQueue.h $(PATHS)queue.h
+main.o: $(PATHS)main.c $(PATHS)addressesManager.h $(PATHS)fileManager.h $(PATHS)memoryManager.h $(PATHS)priorityQueue.h $(PATHS)queue.h $(PATHS)types.h
 
-addressesManager.h:	$(PATHS)addressesManager.c  $(PATHS)addressesManager.h
-fileManager.o: 		$(PATHS)fileManager.c 	  $(PATHS)fileManager.h
-memoryManagers.o: 	$(PATHS)memoryManagers.c  $(PATHS)memoryManagers.h
-priorityQueue.o: 	$(PATHS)priorityQueue.c   $(PATHS)priorityQueue.h
-queue.o: 			$(PATHS)queue.c 		  $(PATHS)queue.h
-types.o: 			$(PATHS)types.c 		  $(PATHS)types.h
+addressesManager.h:	$(PATHS)addressesManager.c $(PATHS)addressesManager.h
+fileManager.o: 		$(PATHS)fileManager.c 	   $(PATHS)fileManager.h
+memoryManager.o: 	$(PATHS)memoryManager.c    $(PATHS)memoryManager.h
+priorityQueue.o: 	$(PATHS)priorityQueue.c    $(PATHS)priorityQueue.h
+queue.o: 			$(PATHS)queue.c 		   $(PATHS)queue.h
+types.o: 			$(PATHS)types.c 		   $(PATHS)types.h
 
 
 
