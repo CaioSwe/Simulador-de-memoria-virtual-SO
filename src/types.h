@@ -19,6 +19,18 @@ typedef void* Item;
 #define UNUSED(x) (void)(x)
 
 /**
+ * @brief Funcao que recebe um item e aplica uma operacao qualquer sob ele sem modificacao.
+ * @return Nao ha' retorno de algum valor.
+ */
+typedef void (*itemFunc)(Item item, void* extra);
+
+/**
+ * @brief Funcao de liberacao de um item qualquer com parametros adicionais.
+ * @return Nao ha' retorno de algum valor.
+ */
+typedef void (*highFreeFunc) (void* structure, itemFunc iFunc, void* extra);
+
+/**
  * @brief Funcao de liberacao de um item qualquer.
  * @return Nao ha' retorno de algum valor.
  */
@@ -32,9 +44,9 @@ typedef bool (*compararItens) (Item itemO, Item itemC);
 
 /**
  * @brief Funcao de visualizacao de qualquer tipo de informacao.
- * @return Retorna um ponteiro de caracter (String).
+ * @return Retorna um ponteiro de char (string) com o conteudo do item a ser impresso.
  */
-typedef char* (*printFunc) (void* item, void* extra);
+typedef const char* (*printFunc) (Item item, void* extra);
 
 
 /**
@@ -50,10 +62,10 @@ typedef Item (*mapFunction)(Item item, void* extra);
 typedef Item (*copyFunction)(Item item);
 
 /**
- * @brief Funcao que recebe um item e aplica uma operacao qualquer sob ele sem modificacao.
+ * @brief Ponteiro de funcao que itera sobre os itens de uma estrutura associada e chama iFunc para todo item da estrutura.
  * @return Nao ha' retorno de algum valor.
  */
-typedef void (*runThroughItems)(Item item, void* extra);
+typedef void (*runThroughItems)(void* structure, itemFunc iFunc, void* extra);
 
 /**
  * @brief Funcao que recebe um item e retorna um valor booleano indicando a condicao de
