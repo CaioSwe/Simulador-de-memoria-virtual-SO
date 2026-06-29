@@ -136,17 +136,6 @@ void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementA
     mMng->pageTable = memoryManager_InitPageTable(size, fPageReplacementAlg, pageTableStructure, runFunc, fFunc);
 }
 
-static void memoryManager_invalidateTLBEntry(Info item, void* extra){
-    int removedPage = *(int*)extra;
-    
-    PageInfoStr* pInfo = (PageInfoStr*)item;
-    
-    if(pInfo->pageNumber == removedPage){
-        pInfo->ValidatingBit = 0;
-        pInfo->frameNumber = -1;
-    }
-}
-
 void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc, removeListItemFunc removeFunc){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
 
