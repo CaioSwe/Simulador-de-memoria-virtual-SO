@@ -151,7 +151,7 @@ void removeItemFila(Structure dataStructure, Info targetItem, bool (*compareFunc
     // 5: Percorre a fila para encontrar o item alvo usando a função de comparação fornecida
     while(current != NULL){
         // 5.1: Se o item atual for igual ao item alvo, remove o nó da fila
-        if(compareFunc((Info)current->item, targetItem)){
+        if(compareFunc(current->item, targetItem)){
             // Se o item a ser removido for o primeiro da fila, atualiza o ponteiro front
             if(previous == NULL) {q->front = current->next;}
             // Se o item a ser removido não for o primeiro da fila, atualiza o ponteiro next do nó anterior
@@ -247,7 +247,7 @@ bool isInQueue(Queue queue, compararItens compFunc, void* item){
     Node* temp = q->front;
 
     while(temp != NULL){
-        if(compFunc(temp, item)) return true;
+        if(compFunc(temp->item, item)) return true;
         temp = temp->next;
     }
 
@@ -266,7 +266,7 @@ void runThroughQueue(Queue queue, itemFunc iFunc, void* extra){
     Node* temp = q->front;
 
     while(temp != NULL){
-        iFunc(temp, extra);
+        iFunc(temp->item, extra);
         temp = temp->next;
     }
 }

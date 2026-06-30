@@ -172,7 +172,7 @@ void removeItemPriorityQueue(Structure dataStructure, Info targetItem, bool (*co
     // 4: Percorre o vetor heap da fila de prioridade para encontrar o item alvo usando a função de comparação fornecida
     for(int i = 0; i < pq->qPreenchida; i++){
         // Se o item alvo for encontrado, remove-o da fila de prioridade
-        if(compareFunc((Info)pq->itens[i].pItem, targetItem)){
+        if(compareFunc(pq->itens[i].pItem, targetItem)){
             // 4.1: Se o item tiver sido alocado dinamicamente, libera a memória associada a ele
             if(pq->itens[i].pItem != NULL) {free(pq->itens[i].pItem);}
 

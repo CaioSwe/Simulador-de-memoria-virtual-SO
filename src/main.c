@@ -60,7 +60,6 @@ static bool LRU(PriorityQueue pQueue, Info pageInfo, bool insert, void* extra){
                 if(extra != NULL) *(Info*)extra = removedPageInfo;
 
                 int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
-                printf("\n %d", frameNumber);
                 memoryManager_setFrameNumber(pageInfo, frameNumber);
             }
             inserirPriorityQueue(pQueue, pageInfo, (float)(++lruClock));
@@ -127,47 +126,6 @@ static bool FIFO(Queue queue, Info pageInfo, bool insert, void* extra){
 /*######################################################################################################################*/
 
 
-
-
-
-/*                                                        PRINT                                                         */
-/** Função auxiliar para imprimir o conteúdo da memória.
- * Esta função é usada para exibir o conteúdo de um item na memória, que é do tipo Item (void*):
- * - item é interpretado como um ponteiro para signed char, e é atribuído o valor do signed char à variável 'c'.
- * - Em seguida, usa-se snprintf para formatar o valor de 'c' como uma string decimal e armazená-lo em um buffer.
- * - O ponteiro 'p' aponta para o buffer contendo a representação em string do valor do signed char.
- * - Retorna-se o ponteiro 'p'.
- * 
- * @param item:     O item a ser impresso, que é do tipo Item (void*).
- * @param extra:    Parâmetro extra (não utilizado nesta função).
- * @return:         Um ponteiro para o buffer contendo a representação em string do valor do signed char.
- */
-static const char* printMemoryContent(Item item, void* extra){
-    signed char c = *(signed char*)item;
-
-    static char buffer[32];
-    /** snprintf
-     * Esta função é usada para formatar o valor do signed char 'c' como uma string decimal e armazená-lo em um buffer.
-     * 
-     * Esta formatação funciona da seguinte maneira:
-     * snprintf(char *const _Buffer, const size_t _BufferCount, const char *const _Format, ...)
-     * - char *const _Buffer:       Um ponteiro para o buffer onde a string formatada será armazenada.
-     * - const size_t _BufferCount: O tamanho do buffer, garantindo que não haja estouro de buffer.
-     * - const char *const _Format: A string de formato que especifica como os argumentos subsequentes devem ser formatados.
-     * - ...:                       Os argumentos adicionais que serão formatados de acordo com a string de formato.
-     * 
-     * De forma que:
-     * snprintf(buffer, sizeof(buffer), "%d", c);
-     * - buffer:            O buffer onde a string formatada será armazenada.
-     * - sizeof(buffer):    O tamanho do buffer, garantindo que não haja estouro de buffer.
-     * - "%d":              A string de formato que indica que o valor de 'c' deve ser formatado como um número decimal.
-     * - c:                 O valor do signed char que será formatado como um número decimal.
-     */
-    snprintf(buffer, sizeof(buffer), "%d", c);
-    const char* p = buffer;
-
-    return p;
-}
 /*######################################################################################################################*/
 
 
@@ -254,7 +212,7 @@ int main(int argc, char* argv[]){
     const char* binPath = "./files/BACKING_STORE.bin";
     int frameCount = atoi(paths[FRAMES]); 
     int frameSize  = 256; // Tamanho do quadro de memória (em bytes) = 256 bytes = 2^8 bytes
-    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize, printMemoryContent);
+    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize);
     printf("Memory Manager address:\n");
     printf("%p\n\n", memMng);
 

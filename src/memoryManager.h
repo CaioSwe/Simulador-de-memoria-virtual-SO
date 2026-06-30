@@ -39,10 +39,9 @@ typedef enum {
  * @param binPath O caminho de arquivo do .bin para memoria auxiliar (Backing Store).
  * @param frameCount A quantidade de frames disponiveis na memoria fisica simulada.
  * @param frameSize O tamanho de cada quadro/pagina em bytes.
- * @param pFunc Um ponteiro para a função de impressão.
  * @return Retorna um ponteiro para o gerenciador de memoria criado.
  */
-MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize, printFunc pFunc);
+MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize);
 
 /**
  * @brief Vincula uma estrutura de tabela de paginas ao gerenciador de memoria.
@@ -55,6 +54,8 @@ MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameS
  * @return Nao ha retorno de algum valor.
  */
 void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementAlgorithm fPageReplacementAlg, Structure pageTableStructure, runThroughItems runFunc, highFreeFunc fFunc);
+
+Info memoryManager_createPageInfoCopy(Info pageInfo);
 
 /**
  * @brief Vincula uma estrutura de cache TLB ao gerenciador de memoria.
