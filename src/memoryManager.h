@@ -58,14 +58,6 @@ void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementA
 Info memoryManager_createPageInfoCopy(Info pageInfo);
 
 /**
- * @brief Invalida uma entrada na TLB, caso a página correspondente tenha sido removida da memória.
- * @param item A entrada da TLB a ser invalidada.
- * @param extra Um ponteiro para dados extras (não utilizado).
- * @return Nao ha retorno de algum valor.
- */
-static void memoryManager_invalidateTLBEntry(Info item, void* extra);
-
-/**
  * @brief Vincula uma estrutura de cache TLB ao gerenciador de memoria.
  * @param memMng O objeto gerenciador de memoria a ser modificado.
  * @param fPageReplacementAlg Funcao do algoritmo de substituicao de entradas na TLB.
