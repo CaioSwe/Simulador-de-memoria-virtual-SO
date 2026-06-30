@@ -60,7 +60,6 @@ static bool LRU(PriorityQueue pQueue, Info pageInfo, bool insert, void* extra){
                 if(extra != NULL) *(Info*)extra = removedPageInfo;
 
                 int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
-                printf("\n %d", frameNumber);
                 memoryManager_setFrameNumber(pageInfo, frameNumber);
             }
             inserirPriorityQueue(pQueue, pageInfo, (float)(++lruClock));
@@ -127,47 +126,6 @@ static bool FIFO(Queue queue, Info pageInfo, bool insert, void* extra){
 /*######################################################################################################################*/
 
 
-
-
-
-/*                                                        PRINT                                                         */
-/** Função auxiliar para imprimir o conteúdo da memória.
- * Esta função é usada para exibir o conteúdo de um item na memória, que é do tipo Item (void*):
- * - item é interpretado como um ponteiro para signed char, e é atribuído o valor do signed char à variável 'c'.
- * - Em seguida, usa-se snprintf para formatar o valor de 'c' como uma string decimal e armazená-lo em um buffer.
- * - O ponteiro 'p' aponta para o buffer contendo a representação em string do valor do signed char.
- * - Retorna-se o ponteiro 'p'.
- * 
- * @param item:     O item a ser impresso, que é do tipo Item (void*).
- * @param extra:    Parâmetro extra (não utilizado nesta função).
- * @return:         Um ponteiro para o buffer contendo a representação em string do valor do signed char.
- */
-static const char* printMemoryContent(Item item, void* extra){
-    signed char c = *(signed char*)item;
-
-    static char buffer[32];
-    /** snprintf
-     * Esta função é usada para formatar o valor do signed char 'c' como uma string decimal e armazená-lo em um buffer.
-     * 
-     * Esta formatação funciona da seguinte maneira:
-     * snprintf(char *const _Buffer, const size_t _BufferCount, const char *const _Format, ...)
-     * - char *const _Buffer:       Um ponteiro para o buffer onde a string formatada será armazenada.
-     * - const size_t _BufferCount: O tamanho do buffer, garantindo que não haja estouro de buffer.
-     * - const char *const _Format: A string de formato que especifica como os argumentos subsequentes devem ser formatados.
-     * - ...:                       Os argumentos adicionais que serão formatados de acordo com a string de formato.
-     * 
-     * De forma que:
-     * snprintf(buffer, sizeof(buffer), "%d", c);
-     * - buffer:            O buffer onde a string formatada será armazenada.
-     * - sizeof(buffer):    O tamanho do buffer, garantindo que não haja estouro de buffer.
-     * - "%d":              A string de formato que indica que o valor de 'c' deve ser formatado como um número decimal.
-     * - c:                 O valor do signed char que será formatado como um número decimal.
-     */
-    snprintf(buffer, sizeof(buffer), "%d", c);
-    const char* p = buffer;
-
-    return p;
-}
 /*######################################################################################################################*/
 
 
@@ -190,7 +148,7 @@ int main(int argc, char* argv[]){
     printf("\n\n\n");
 
 
-    
+
     /*                                              1: TRATA OS PARÂMETROS                                              */
     // Aloca memória para armazenar os caminhos dos arquivos fornecidos como argumentos de linha de comando.
     char** paths = calloc(3, sizeof(char*));
@@ -254,7 +212,7 @@ int main(int argc, char* argv[]){
     const char* binPath = "./files/BACKING_STORE.bin";
     int frameCount = atoi(paths[FRAMES]); 
     int frameSize  = 256; // Tamanho do quadro de memória (em bytes) = 256 bytes = 2^8 bytes
-    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize, printMemoryContent);
+    MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize);
     printf("Memory Manager address:\n");
     printf("%p\n\n", memMng);
 
@@ -265,6 +223,7 @@ int main(int argc, char* argv[]){
     Structure strTLB                = NULL;
     runThroughItems runFunc         = NULL;
     highFreeFunc fAlg               = NULL;
+    removeListItemFunc removeFunc   = NULL;
 
     // 2.3: Verifica qual algoritmo de substituição de páginas será utilizado e
     // Cria a estrutura de dados correspondente (fila de prioridade para LRU ou fila simples para FIFO)
@@ -274,6 +233,7 @@ int main(int argc, char* argv[]){
         strRep       = LRU;
         runFunc      = runThroughPriorityQueue;
         fAlg         = destroiPriorityQueue;
+        removeFunc   = removeItemPriorityQueue;
     }
     else{
         strPageTable = initQueue(frameCount);
@@ -281,6 +241,7 @@ int main(int argc, char* argv[]){
         strRep       = FIFO;
         runFunc      = runThroughQueue;
         fAlg         = freeQueue;
+        removeFunc   = removeItemFila;
     }
 
     // 2.4: Calcula o tamanho da tabela de páginas com base no tamanho do quadro de memória (frameSize).
@@ -289,7 +250,7 @@ int main(int argc, char* argv[]){
     // 2.5: Adiciona a estrutura de dados criada ao gerenciador de memória inicializado, 
     // juntamente com o algoritmo de substituição de páginas escolhido.
     memoryManager_addPageTable(memMng, pageTableSize, strRep, strPageTable, runFunc, fAlg);
-    memoryManager_addTLB(memMng, strRep, strTLB, runFunc, fAlg);
+    memoryManager_addTLB(memMng, strRep, strTLB, runFunc, fAlg, removeFunc);
     /*##################################################################################################################*/
 
 

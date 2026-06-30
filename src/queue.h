@@ -2,6 +2,7 @@
 #define _QUEUE_H
 
 #include "fileManager.h"
+#include "memoryManager.h"
 
 typedef void* Queue;
 
@@ -33,6 +34,14 @@ void insertElem(Queue queue, Item item);
  * @return      Um ponteiro para o elemento removido.
  */
 Item removeElem(Queue queue);
+/**
+ * Esta função remove um item específico da fila, se ele estiver presente.
+ * @param dataStructure Um ponteiro para a estrutura de dados da fila.
+ * @param targetItem    Um ponteiro para o item a ser removido da fila.
+ * @param compareFunc   Uma função de comparação que determina se dois itens são iguais.
+ * @return              Não há retorno de algum valor.
+ */
+void removeItemFila(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info));
 /**
  * Esta função libera a memória alocada para a fila.
  * @param queue Um ponteiro para a fila a ser liberada.
@@ -77,4 +86,5 @@ bool isInQueue(Queue queue, compararItens compFunc, void* item);
  */
 void runThroughQueue(Queue queue, itemFunc iFunc, void* extra);
 /*######################################################################################################################*/
+
 #endif

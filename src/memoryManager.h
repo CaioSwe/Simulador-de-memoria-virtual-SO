@@ -20,7 +20,9 @@ typedef char PageContent;
 
 // Declaracao de escopo padrao para um algoritmo de troca de paginas.
 typedef bool (*PageReplacementAlgorithm) (Structure tableStructure, Info pageInfo, bool replace, void* extra);
-
+/////////////////////////////////////////////////////////////////////
+// Declaracao de escopo padrao para um algoritmo de remocao de itens.
+typedef void (*removeListItemFunc)(Structure dataStruct, Info item, bool (*compare)(Info, Info));
 /////////////////////////////////////////////////////////////////////
 
 // Resultado de uma consulta (accessAddress)
@@ -37,10 +39,9 @@ typedef enum {
  * @param binPath O caminho de arquivo do .bin para memoria auxiliar (Backing Store).
  * @param frameCount A quantidade de frames disponiveis na memoria fisica simulada.
  * @param frameSize O tamanho de cada quadro/pagina em bytes.
- * @param pFunc Um ponteiro para a função de impressão.
  * @return Retorna um ponteiro para o gerenciador de memoria criado.
  */
-MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize, printFunc pFunc);
+MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize);
 
 /**
  * @brief Vincula uma estrutura de tabela de paginas ao gerenciador de memoria.
@@ -53,6 +54,8 @@ MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameS
  * @return Nao ha retorno de algum valor.
  */
 void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementAlgorithm fPageReplacementAlg, Structure pageTableStructure, runThroughItems runFunc, highFreeFunc fFunc);
+
+Info memoryManager_createPageInfoCopy(Info pageInfo);
 
 /**
  * @brief Invalida uma entrada na TLB, caso a página correspondente tenha sido removida da memória.
@@ -69,9 +72,10 @@ static void memoryManager_invalidateTLBEntry(Info item, void* extra);
  * @param tlbStructure A estrutura de dados escolhida para representar a TLB.
  * @param runFunc Um ponteiro para a funcao de percorrimento da estrutura associada.
  * @param fFunc Um ponteiro para uma funcao de liberacao da estrutura.
+ * @param removeFunc Um ponteiro para uma funcao de remocao de itens da estrutura.
  * @return Nao ha retorno de algum valor.
  */
-void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc);
+void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc, removeListItemFunc removeFunc);
 
 /**
  * @brief Exibe o estado de ocupacao e os mapeamentos presentes na tabela de paginas.

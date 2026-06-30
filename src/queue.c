@@ -134,6 +134,49 @@ Item removeElem(Queue queue){
     return item;
 }
 
+void removeItemFila(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info)){
+    // 1: Verifica se a estrutura de dados é válida (não nula)
+    if(dataStructure == NULL) return;
+
+    // 2: Converte a estrutura de dados genérica para uma fila específica
+    QueueStr* q = (QueueStr*)dataStructure;
+
+    // 3: Verifica se a fila está vazia
+    if (q->front == NULL) return;
+
+    // 4: Inicializa ponteiros para percorrer a fila
+    Node* current = q->front;
+    Node* previous = NULL;
+
+    // 5: Percorre a fila para encontrar o item alvo usando a função de comparação fornecida
+    while(current != NULL){
+        // 5.1: Se o item atual for igual ao item alvo, remove o nó da fila
+        if(compareFunc(current->item, targetItem)){
+            // Se o item a ser removido for o primeiro da fila, atualiza o ponteiro front
+            if(previous == NULL) {q->front = current->next;}
+            // Se o item a ser removido não for o primeiro da fila, atualiza o ponteiro next do nó anterior
+            else                 {previous->next = current->next;}
+
+            // Se o item a ser removido for o último da fila, atualiza o ponteiro rear
+            if(current == q->rear) {q->rear = previous;}
+
+            // Se o item atual não for nulo, libera a memória do item
+            if(current->item != NULL) {free(current->item);}
+            
+            // Libera a memória do nó atual
+            free(current);
+            
+            // Decrementa o tamanho da fila
+            q->size--;
+
+            return;
+        }
+        // 5.2: Se o item atual não for o alvo, avança para o próximo nó na fila    
+        previous = current;
+        current = current->next;
+    }
+}
+
 void freeQueue(Queue queue, freeFunc fFunc, void* extra){
     // 1: Verifica se a fila é válida (não nula)
     if(queue == NULL){
@@ -204,7 +247,7 @@ bool isInQueue(Queue queue, compararItens compFunc, void* item){
     Node* temp = q->front;
 
     while(temp != NULL){
-        if(compFunc(temp, item)) return true;
+        if(compFunc(temp->item, item)) return true;
         temp = temp->next;
     }
 
@@ -223,7 +266,7 @@ void runThroughQueue(Queue queue, itemFunc iFunc, void* extra){
     Node* temp = q->front;
 
     while(temp != NULL){
-        iFunc(temp, extra);
+        iFunc(temp->item, extra);
         temp = temp->next;
     }
 }

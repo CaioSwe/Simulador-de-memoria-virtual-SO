@@ -28,7 +28,8 @@ typedef struct TLBStr{
     PageReplacementAlgorithm fPageReplacementAlg;
     runThroughItems runFunc;
     highFreeFunc fFunc;
-    
+    removeListItemFunc removeFunc;
+
     Structure dataStructure;
 } TLBStr;
 
@@ -40,6 +41,7 @@ typedef struct PageTableStr{
 
     Structure dataStructure;
     
+    int size;
     PageInfoStr* entries;
 } PageTableStr;
 
@@ -53,8 +55,6 @@ typedef struct memoryManagerStr{
 
     char* physicalMemory;
 
-    printFunc pFunc;
-
     PageTableStr* pageTable;
     TLBStr* TLB;
 } memoryManagerStr;
@@ -62,7 +62,7 @@ typedef struct memoryManagerStr{
 ////////////////////////////////////////
 
 // Inicializa uma memoryMng, com arquivo .bin para memória, quantQuadros e uma estrutura de TLB (se for nula, cria um memoryManager sem TLB)
-MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize, printFunc pFunc){
+MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameSize){
     memoryManagerStr* mMng = (memoryManagerStr*)malloc(sizeof(memoryManagerStr));
 
     if(checkAllocation(mMng, "msg de erro")) return NULL;
@@ -83,8 +83,6 @@ MemoryManager memoryManager_Init(const char* binPath, int frameCount, int frameS
     mMng->frameCount = frameCount;
     mMng->frameSize = frameSize;
 
-    mMng->pFunc = pFunc;
-
     mMng->pageTable = NULL;
     mMng->TLB = NULL;
 
@@ -100,6 +98,7 @@ static PageTableStr* memoryManager_InitPageTable(int size, PageReplacementAlgori
     pTable->dataStructure = pageTableStructure;
     pTable->runFunc = runFunc;
     pTable->fFunc = fFunc;
+    pTable->size = size;
     pTable->entries = (PageInfoStr*)malloc(sizeof(PageInfoStr) * size);
 
     for(int i = 0; i < size; i++){
@@ -135,18 +134,19 @@ void memoryManager_addPageTable(MemoryManager memMng, int size, PageReplacementA
     mMng->pageTable = memoryManager_InitPageTable(size, fPageReplacementAlg, pageTableStructure, runFunc, fFunc);
 }
 
-static void memoryManager_invalidateTLBEntry(Info item, void* extra){
-    int removedPage = *(int*)extra;
-    
-    PageInfoStr* pInfo = (PageInfoStr*)item;
-    
-    if(pInfo->pageNumber == removedPage){
-        pInfo->ValidatingBit = 0;
-        pInfo->frameNumber = -1;
-    }
+Info memoryManager_createPageInfoCopy(Info pageInfo){
+    PageInfoStr* newPage = (PageInfoStr*)malloc(sizeof(PageInfoStr));
+
+    PageInfoStr* oldPage = (PageInfoStr*)pageInfo;
+
+    newPage->frameNumber = oldPage->frameNumber;
+    newPage->pageNumber = oldPage->pageNumber;
+    newPage->ValidatingBit = oldPage->ValidatingBit;
+
+    return newPage;
 }
 
-void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc){
+void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageReplacementAlg, Structure tlbStructure, runThroughItems runFunc, highFreeFunc fFunc, removeListItemFunc removeFunc){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
 
     if(mMng == NULL){
@@ -155,12 +155,18 @@ void memoryManager_addTLB(MemoryManager memMng, PageReplacementAlgorithm fPageRe
     }
 
     mMng->TLB = memoryManager_InitTLB(fPageReplacementAlg, tlbStructure, runFunc, fFunc);
+    if(mMng->TLB != NULL) {mMng->TLB->removeFunc = removeFunc;}
+}
+
+static void memoryManager_printPageInfo(PageInfoStr pInfo, FILE* fOutput){
+    if(pInfo.frameNumber > -1) fprintf(fOutput, "%6d - %5d - %15d\n", pInfo.pageNumber, pInfo.frameNumber, pInfo.ValidatingBit);
+    else                       fprintf(fOutput, "%6d - %5s - %15d\n", pInfo.pageNumber, "NULL", pInfo.ValidatingBit);
 }
 
 static void memoryManager_printAddressTableInfo(Info item, FILE* fOutput){
     PageInfoStr pInfo = ((InfoStr*)item)->information;
 
-    fprintf(fOutput, "%d - %d - %d\n", pInfo.pageNumber, pInfo.frameNumber, pInfo.ValidatingBit);
+    memoryManager_printPageInfo(pInfo, fOutput);
 }
 
 static void memoryManager_printAddressTableInfoVoid(Info item, void* extra){
@@ -170,9 +176,13 @@ static void memoryManager_printAddressTableInfoVoid(Info item, void* extra){
 void memoryManager_printPageTable(MemoryManager memMng, FILE* fOutput){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
 
-    runThroughItems runFunc = mMng->pageTable->runFunc;
-
-    runFunc(mMng->pageTable->dataStructure, memoryManager_printAddressTableInfoVoid, fOutput);
+    fprintf(fOutput, "\n====== PAGE TABLE - INFO ======\n\n");
+    fprintf(fOutput, "%s - %s - %s\n", "Pagina", "Frame", "Bit de validade");
+    for(int i = 0; i < mMng->pageTable->size; i++){
+        PageInfoStr pInfo = mMng->pageTable->entries[i];
+        memoryManager_printPageInfo(pInfo, fOutput);
+    }
+    fprintf(fOutput, "\n===============================\n\n");
 }
 
 void memoryManager_printTLB(MemoryManager memMng, FILE* fOutput){
@@ -180,24 +190,24 @@ void memoryManager_printTLB(MemoryManager memMng, FILE* fOutput){
 
     runThroughItems runFunc = mMng->TLB->runFunc;
 
+    fprintf(fOutput, "\n========= TLB -- INFO =========\n\n");
+    fprintf(fOutput, "%s - %s - %s\n", "Pagina", "Frame", "Bit de validade");
     runFunc(mMng->TLB->dataStructure, memoryManager_printAddressTableInfoVoid, fOutput);
+    fprintf(fOutput, "\n===============================\n\n");
 }
 
 void memoryManager_printAddressInfo(MemoryManager memMng, Info item, int address, FILE* fOutput){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
     PageInfoStr pInfo = ((InfoStr*)item)->information;
     
-    printFunc pFunc = mMng->pFunc;
     int frameNumber = pInfo.frameNumber;
     
     int offset = address & (mMng->frameSize - 1);
     
-    char pageContent = mMng->physicalMemory[(frameNumber * mMng->frameSize) + offset];
-
+    unsigned char pageContent = mMng->physicalMemory[(frameNumber * mMng->frameSize) + offset];
     int physicalAddress = (pInfo.frameNumber * mMng->frameSize) + offset;
-    const char* value = pFunc(&pageContent, NULL);
 
-    fprintf(fOutput, "Endereço virtual: %5d | Endereço físico: %4d | Conteúdo: %s\n", address, physicalAddress, value);
+    fprintf(fOutput, "Endereço virtual: %5d | Endereço físico: %4d | Conteúdo: %d\n", address, physicalAddress, pageContent);
 }
 
 bool memoryManager_isInTLB(MemoryManager memMng, int address){
@@ -222,7 +232,7 @@ bool memoryManager_isInTLB(MemoryManager memMng, int address){
 
 static void memoryManager_insertPageInMemory(memoryManagerStr* mMng, int pageNumber, int frameNumber){
     int physicalFrameId = frameNumber * mMng->frameSize;
-
+    
     fseek(mMng->binFile, pageNumber * mMng->frameSize, SEEK_SET);
     fread(mMng->physicalMemory + physicalFrameId, mMng->frameSize, 1, mMng->binFile);
 }
@@ -234,6 +244,7 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
 
     // 2: Aloca memória para armazenar as informações da página acessada e o resultado do acesso e verifica se a alocação foi bem-sucedida
     InfoStr* info = (InfoStr*)malloc(sizeof(InfoStr));
+    PageInfoStr* pInfo = (PageInfoStr*)malloc(sizeof(PageInfoStr));
     if(checkAllocation(info, "msg de erro")) return NULL;
 
     // 3: Calcula o número da página a partir do endereço virtual fornecido e o armazena na estrutura de informações da página
@@ -241,6 +252,7 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
     // pageNumber = address >> log2(frameSize) = address >> 8 (se frameSize = 256 bytes)
     int pageNumber = address >> (int)log2(mMng->frameSize);
     info->information.pageNumber = pageNumber;
+    pInfo->pageNumber = pageNumber;
 
     // 4: Verifica se a TLB está presente no gerenciador de memória e armazena o resultado em uma variável booleana
     bool hasTLB = (mMng->TLB != NULL);
@@ -252,15 +264,18 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         Structure tlbStructure = mMng->TLB->dataStructure;
 
         // 5.2: Verifica se a página está presente na TLB usando o algoritmo de substituição de páginas
-        if(repTLB(tlbStructure, &info->information, false, NULL)){
-            // Se a página estiver na TLB, promove a página na TLB (atualiza a prioridade) 
-            repTLB(tlbStructure, &info->information, true, NULL);
-
+        if(repTLB(tlbStructure, pInfo, false, NULL)){
             // Atualiza as informações da estrutura InfoStr
             // Com o resultado do acesso (ACCESS_TLB_HIT), o número do quadro correspondente e o bit de validação
             info->aResult = ACCESS_TLB_HIT;
             info->information.frameNumber = mMng->pageTable->entries[pageNumber].frameNumber;
             info->information.ValidatingBit = 1;
+
+            pInfo->frameNumber = info->information.frameNumber;
+            pInfo->ValidatingBit = 1;
+
+            // Se a página estiver na TLB, promove a página na TLB (atualiza a prioridade) 
+            repTLB(tlbStructure, pInfo, true, NULL);
 
             // Retorna a estrutura InfoStr contendo as informações da página acessada e o resultado do acesso
             return info;
@@ -301,8 +316,11 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         info->information.frameNumber = frameNumber;
         info->information.ValidatingBit = 1;
 
+        pInfo->frameNumber = frameNumber;
+        pInfo->ValidatingBit = 1;
+
         // Insere a página na memória usando o algoritmo de substituição de páginas da tabela de páginas
-        repPT(ptStructure, &info->information, true, NULL);
+        repPT(ptStructure, pInfo, true, NULL);
 
         // Incrementa a quantidade atual de quadros na memória, indicando que um novo quadro foi ocupado
         mMng->currentAmountOfFrames += 1;
@@ -313,22 +331,31 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         Info removedInfo = NULL;
 
         // Substitui a página na memória usando o algoritmo de substituição de páginas da tabela de páginas
-        repPT(ptStructure, &info->information, true, &removedInfo);
+        repPT(ptStructure, pInfo, true, &removedInfo);
 
         // Obtém o número do quadro da página removida a partir das informações da página removida
         frameNumber = ((PageInfoStr*)removedInfo)->frameNumber;
-        printf(" -> %d", frameNumber);
+
+        info->information.frameNumber = frameNumber;
+        info->information.ValidatingBit = 1;
 
         // Atualiza a entrada da tabela de páginas para a página removida, 
         // definindo o número do quadro como -1 e o bit de validação como 0 (inválido)
         int removedPage = ((PageInfoStr*)removedInfo)->pageNumber;
+
         mMng->pageTable->entries[removedPage].frameNumber = -1;
         mMng->pageTable->entries[removedPage].ValidatingBit = 0;
 
         // Se a TLB estiver presente, invalida a entrada correspondente à página removida na TLB
-        if(hasTLB){
-            runThroughItems runFunc = mMng->TLB->runFunc;
-            runFunc(mMng->TLB->dataStructure, memoryManager_invalidateTLBEntry, &removedPage);
+        if(hasTLB && mMng->TLB->removeFunc != NULL){
+            // Cria uma estrutura dummy para passar como item a ser removido da TLB
+            // e define o número da página removida na estrutura dummy
+            PageInfoStr* dummy = (PageInfoStr*)malloc(sizeof(PageInfoStr));
+            dummy->pageNumber = removedPage;
+
+            // Executa a remoção física real varrendo a estrutura, localizando e dando free() no nó
+            mMng->TLB->removeFunc(mMng->TLB->dataStructure, dummy, memoryManager_comparePagesInfo);
+            free(dummy);
         }
     }
 
@@ -348,7 +375,7 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         Structure tlbStructure = mMng->TLB->dataStructure;
 
         // 11.2: Insere a página acessada na TLB usando o algoritmo de substituição de páginas da TLB
-        repTLB(tlbStructure, &info->information, true, NULL);
+        repTLB(tlbStructure, pInfo, true, NULL);
     }
 
     // 12: Atualiza as informações da estrutura InfoStr com o resultado do acesso (ACCESS_PAGE_FAULT)

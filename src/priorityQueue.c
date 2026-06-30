@@ -159,6 +159,45 @@ PriorityItem removerMinPriorityQueue(PriorityQueue priorityQueue){
     return pMin;
 }
 
+void removeItemPriorityQueue(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info)){
+    // 1: Verifica se a estrutura de dados é nula
+    if(dataStructure == NULL) return;
+
+    // 2: Converte a estrutura de dados genérica para a estrutura específica da fila de prioridade
+    PriorityQueueStr* pq = (PriorityQueueStr*)dataStructure;
+
+    // 3: Verifica se a fila de prioridade está vazia
+    if(pq->qPreenchida <= 0) return;
+
+    // 4: Percorre o vetor heap da fila de prioridade para encontrar o item alvo usando a função de comparação fornecida
+    for(int i = 0; i < pq->qPreenchida; i++){
+        // Se o item alvo for encontrado, remove-o da fila de prioridade
+        if(compareFunc(pq->itens[i].pItem, targetItem)){
+            // 4.1: Se o item tiver sido alocado dinamicamente, libera a memória associada a ele
+            if(pq->itens[i].pItem != NULL) {free(pq->itens[i].pItem);}
+
+            // 4.2: Se o item for único ou estiver no final do Heap, apenas decrementa a quantidade preenchida
+            if(i == pq->qPreenchida - 1) {pq->qPreenchida--;}
+            // 4.3: Se o item estiver no meio do Heap, substitui-o pelo último elemento e ajusta a posição do Heap
+            else{
+                // Obtém a prioridade antiga do item removido e a prioridade do último item do Heap
+                double oldPriority = pq->itens[i].prioridade;
+                double newPriority = pq->itens[pq->qPreenchida - 1].prioridade;
+
+                // Move o último elemento do Heap para a posição que ficou vaga e decrementa a quantidade preenchida
+                pq->itens[i] = pq->itens[pq->qPreenchida - 1];
+                pq->qPreenchida--;
+
+                // Compara a nova prioridade com a antiga para saber se o item deve subir ou descer
+                if(newPriority < oldPriority) {checkPriorityUp(pq, i);}
+                else                          {checkPriorityDown(pq, i);}
+            }
+            // 4.4: Sai do loop após remover o item, pois não há necessidade de continuar procurando
+            return;
+        }
+    }
+}
+
 PriorityItem getMinPriorityQueue(PriorityQueue priorityQueue){
     if(priorityQueue == NULL){
         printf("\n - getMinPriorityQueue() -> Fila de prioridade nula passada. -");
