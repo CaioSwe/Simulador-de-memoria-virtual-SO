@@ -41,7 +41,7 @@ Item removeElem(Queue queue);
  * @param compareFunc   Uma função de comparação que determina se dois itens são iguais.
  * @return              Não há retorno de algum valor.
  */
-void removeItemFila(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info));
+Item removeItemFila(Structure dataStructure, Info targetItem, compararItens compareFunc);
 /**
  * Esta função libera a memória alocada para a fila.
  * @param queue Um ponteiro para a fila a ser liberada.

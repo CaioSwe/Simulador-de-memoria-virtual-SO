@@ -22,7 +22,7 @@ typedef char PageContent;
 typedef bool (*PageReplacementAlgorithm) (Structure tableStructure, Info pageInfo, bool replace, void* extra);
 /////////////////////////////////////////////////////////////////////
 // Declaracao de escopo padrao para um algoritmo de remocao de itens.
-typedef void (*removeListItemFunc)(Structure dataStruct, Info item, bool (*compare)(Info, Info));
+typedef Item (*removeListItemFunc)(Structure dataStruct, Info item, bool (*compare)(Info, Info));
 /////////////////////////////////////////////////////////////////////
 
 // Resultado de uma consulta (accessAddress)
@@ -156,5 +156,7 @@ bool memoryManager_comparePagesInfo(Info info1, Info info2);
  * @return Nao ha retorno de algum valor.
  */
 void memoryManager_free(MemoryManager memMng, void* extra);
+
+void memoryManager_freePageInfo(Info pInfo, void* extra);
 
 #endif

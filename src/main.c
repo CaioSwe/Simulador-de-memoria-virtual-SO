@@ -57,12 +57,18 @@ static bool LRU(PriorityQueue pQueue, Info pageInfo, bool insert, void* extra){
         if(!isInPriorityQueue(pQueue, pageInfo, memoryManager_comparePagesInfo)){
             if(isPriorityQueueCheia(pQueue)){
                 Info removedPageInfo = removerMinPriorityQueue(pQueue);
-                if(extra != NULL) *(Info*)extra = removedPageInfo;
-
+                
                 int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
                 memoryManager_setFrameNumber(pageInfo, frameNumber);
+
+                if(extra != NULL){
+                    *(Info*)extra = removedPageInfo;
+                }
+                else{
+                    free(removedPageInfo); 
+                }
             }
-            inserirPriorityQueue(pQueue, pageInfo, (float)(++lruClock));
+            inserirPriorityQueue(pQueue, memoryManager_createPageInfoCopy(pageInfo), (float)(++lruClock));
             return false;
         }
         else{
@@ -111,12 +117,18 @@ static bool FIFO(Queue queue, Info pageInfo, bool insert, void* extra){
         if(!isInQueue(queue, memoryManager_comparePagesInfo, pageInfo)){
             if(isQueueFull(queue)){
                 Info removedPageInfo = removeElem(queue);
-                if(extra != NULL) *(Info*)extra = removedPageInfo;
-
+                
                 int frameNumber = memoryManager_getFrameNumber(removedPageInfo);
                 memoryManager_setFrameNumber(pageInfo, frameNumber);
+
+                if(extra != NULL){
+                    *(Info*)extra = removedPageInfo;
+                }
+                else{
+                    free(removedPageInfo);
+                }
             }
-            insertElem(queue, pageInfo);
+            insertElem(queue, memoryManager_createPageInfoCopy(pageInfo));
             return false;
         }
         else {return true;}
@@ -257,7 +269,7 @@ int main(int argc, char* argv[]){
     
     /*                                  3: LENDO O ARQUIVO DE ENDEREÇOS (addresses.txt)                                 */
     // 3.1: fPathAddr = paths[ADDR] + ".txt"   =>   addresses + ".txt"   =>   "addresses.txt"
-    const char* fPathAddr = strcatcat(paths[ADDR], "");
+    char* fPathAddr = strcatcat(paths[ADDR], "");
 
     // 3.2: Define o caminho do arquivo de saída (correct.txt) para armazenar os resultados da execução do programa.
     const char* fOutputPathAddr = "./files/correct.txt";
@@ -278,6 +290,8 @@ int main(int argc, char* argv[]){
     /*                                                     4: FREEs                                                     */
     // 4.1: Libera a memória alocada para o gerenciador de memória e suas estruturas internas.
     memoryManager_free(memMng, NULL);
+
+    free(fPathAddr);
 
     // 4.2: Libera a memória alocada para os caminhos dos arquivos fornecidos como argumentos de linha de comando.
     // 4.2.1: Libera a memória alocada para cada caminho de arquivo.

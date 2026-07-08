@@ -74,7 +74,8 @@ PriorityItem removerMinPriorityQueue(PriorityQueue priorityQueue);
  * @param targetItem Item a ser removido da PriorityQueue.
  * @param compareFunc Funcao de comparacao para encontrar o item na fila.
  */
-void removeItemPriorityQueue(Structure dataStructure, Info targetItem, bool (*compareFunc)(Info, Info));
+PriorityItem removeItemPriorityQueue(Structure dataStructure, Info targetItem, compararItens compareFunc);
+
 /**
  * @brief Pega o elemento de menor prioridade da PriorityQueue sem retirar da fila.
  * @param priorityQueue PriorityQueue a ser pega o valor.

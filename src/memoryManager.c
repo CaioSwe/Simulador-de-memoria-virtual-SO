@@ -207,7 +207,7 @@ void memoryManager_printAddressInfo(MemoryManager memMng, Info item, int address
     unsigned char pageContent = mMng->physicalMemory[(frameNumber * mMng->frameSize) + offset];
     int physicalAddress = (pInfo.frameNumber * mMng->frameSize) + offset;
 
-    fprintf(fOutput, "Endereço virtual: %5d | Endereço físico: %4d | Conteúdo: %d\n", address, physicalAddress, pageContent);
+    fprintf(fOutput, "Endereço virtual: %5d | Endereço físico: %5d | Conteúdo: %d\n", address, physicalAddress, pageContent);
 }
 
 bool memoryManager_isInTLB(MemoryManager memMng, int address){
@@ -242,17 +242,20 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
     memoryManagerStr* mMng = (memoryManagerStr*)memMng;
     if(mMng == NULL) return NULL;
 
-    // 2: Aloca memória para armazenar as informações da página acessada e o resultado do acesso e verifica se a alocação foi bem-sucedida
+    // 2: Aloca o info que será retornado
     InfoStr* info = (InfoStr*)malloc(sizeof(InfoStr));
-    PageInfoStr* pInfo = (PageInfoStr*)malloc(sizeof(PageInfoStr));
     if(checkAllocation(info, "msg de erro")) return NULL;
 
+    PageInfoStr pInfoLocal;
+    
     // 3: Calcula o número da página a partir do endereço virtual fornecido e o armazena na estrutura de informações da página
     // O cálculo é feito usando o tamanho do quadro de memória (frameSize) e armazena no campo correspondente da estrutura InfoStr
     // pageNumber = address >> log2(frameSize) = address >> 8 (se frameSize = 256 bytes)
     int pageNumber = address >> (int)log2(mMng->frameSize);
     info->information.pageNumber = pageNumber;
-    pInfo->pageNumber = pageNumber;
+    pInfoLocal.pageNumber = pageNumber;
+    
+    PageInfoStr* pInfo = &pInfoLocal;
 
     // 4: Verifica se a TLB está presente no gerenciador de memória e armazena o resultado em uma variável booleana
     bool hasTLB = (mMng->TLB != NULL);
@@ -327,36 +330,25 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
     }
     // 8.2: A memória está cheia, então é necessário substituir uma página existente na memória
     else{
-        // Inicializa um ponteiro para armazenar as informações da página removida (substituída) da memória
         Info removedInfo = NULL;
 
-        // Substitui a página na memória usando o algoritmo de substituição de páginas da tabela de páginas
-        repPT(ptStructure, pInfo, true, &removedInfo);
+        repPT(ptStructure, &info->information, true, &removedInfo); 
 
-        // Obtém o número do quadro da página removida a partir das informações da página removida
-        frameNumber = ((PageInfoStr*)removedInfo)->frameNumber;
-
-        info->information.frameNumber = frameNumber;
-        info->information.ValidatingBit = 1;
-
-        // Atualiza a entrada da tabela de páginas para a página removida, 
-        // definindo o número do quadro como -1 e o bit de validação como 0 (inválido)
+        frameNumber     = ((PageInfoStr*)removedInfo)->frameNumber;
         int removedPage = ((PageInfoStr*)removedInfo)->pageNumber;
 
         mMng->pageTable->entries[removedPage].frameNumber = -1;
         mMng->pageTable->entries[removedPage].ValidatingBit = 0;
 
-        // Se a TLB estiver presente, invalida a entrada correspondente à página removida na TLB
         if(hasTLB && mMng->TLB->removeFunc != NULL){
-            // Cria uma estrutura dummy para passar como item a ser removido da TLB
-            // e define o número da página removida na estrutura dummy
-            PageInfoStr* dummy = (PageInfoStr*)malloc(sizeof(PageInfoStr));
-            dummy->pageNumber = removedPage;
+            PageInfoStr dummy;
+            dummy.pageNumber = removedPage; 
 
-            // Executa a remoção física real varrendo a estrutura, localizando e dando free() no nó
-            mMng->TLB->removeFunc(mMng->TLB->dataStructure, dummy, memoryManager_comparePagesInfo);
-            free(dummy);
+            Info f = mMng->TLB->removeFunc(mMng->TLB->dataStructure, &dummy, memoryManager_comparePagesInfo);
+            if(f != NULL) memoryManager_freePageInfo(f, NULL);
         }
+
+        if(removedInfo != NULL) {free(removedInfo);}
     }
 
     // 9: Insere a página na memória física (physicalMemory) do gerenciador de memória
@@ -416,7 +408,7 @@ bool memoryManager_comparePagesInfo(Info info1, Info info2){
     return i1->pageNumber == i2->pageNumber;
 }
 
-static void memoryManager_freePageInfo(Info pInfo, void* extra){
+void memoryManager_freePageInfo(Info pInfo, void* extra){
     PageInfoStr* pInfoStr = (PageInfoStr*)pInfo;
 
     free(pInfoStr);

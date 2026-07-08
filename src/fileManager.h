@@ -28,7 +28,7 @@ const char* trimString(const char* string, int n);
  * @param cat2 Segunda string 'a ser concatenada.
  * @return Retorna uma nova string resultante da concatenação de cat1 e cat2, respectivamente.
  */
-const char* strcatcat(const char* cat1, const char* cat2);
+char* strcatcat(const char* cat1, const char* cat2);
 
 /**
  * @brief Copia de um arquivo para o outro.

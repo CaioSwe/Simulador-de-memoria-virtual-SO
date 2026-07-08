@@ -48,6 +48,7 @@ void processAddrFile(MemoryManager memMng, const char* fPathAddr, FILE* fSaida){
             }
         }
         // Caso seja um inteiro, processa o endereço virtual normalmente.
+        // ...
         else{
             Info pInfo = memoryManager_accessAddress(memMng, virtualAddress);
             memoryManager_printAddressInfo(memMng, pInfo, virtualAddress, fSaida);
@@ -55,20 +56,13 @@ void processAddrFile(MemoryManager memMng, const char* fPathAddr, FILE* fSaida){
             AccessResult result = memoryManager_getInfoResult(pInfo);
         
             switch(result){
-                case ACCESS_TLB_HIT:
-                    hit += 1;
-                    break;
-                case ACCESS_PAGE_TABLE_HIT:
-                    miss += 1;
-                    break;
-                case ACCESS_PAGE_FAULT:
-                    fault += 1;
-                    break;
-            default:
-                break;
+                case ACCESS_TLB_HIT: hit += 1; break;
+                case ACCESS_PAGE_TABLE_HIT: miss += 1; break;
+                case ACCESS_PAGE_FAULT: fault += 1; break;
             }
-
             totalAccesses += 1;
+
+            memoryManager_freePageInfo(pInfo, NULL);
         }
     }
 

@@ -62,20 +62,20 @@ types.o: 			$(PATHS)types.c 		   $(PATHS)types.h
 
 # Projeto principal
 $(PROJ_NAME): $(OBJETOS)
-	@echo.
-	@echo.
-	@echo.
-	@echo.
+	#@echo.
+	#@echo.
+	#@echo.
+	#@echo.
 
 	@echo "Compilando o projeto principal $(PROJ_NAME): ..."
 	$(CC) -o $(PROJ_NAME) $(OBJETOS) $(LIBS) $(LDFLAGS)
 	@echo "Compilacao finalizada com sucesso."
 
-	@echo.
+	#@echo.
 
 # Arquivos .c em .o
 %.o : %.c
-	@echo.
+	#@echo.
 	@echo "Compilando $< ..."
 	$(CC) -c $(CFLAGS) $< -o $@
 # =============================================================================================== #
@@ -87,17 +87,17 @@ $(PROJ_NAME): $(OBJETOS)
 # =======================================  CLEAN & PHONY ======================================== #
 # Regra para limpar os arquivos objetos e o executável
 clean:
-	@echo.
+	#@echo.
 
 	@echo Limpando os arquivos objetos e o executavel...
 	$(RM) ".\files\correct.txt"
 
-	@echo.
+	#@echo.
 
 	$(RM) $(OBJETOS_DEL) $(PROJ_NAME)$(EXEC)
 	@echo Arquivos objetos e executavel limpos com sucesso!
 
-	@echo.
+	#@echo.
 
 .PHONY: all
 .PHONY: clean

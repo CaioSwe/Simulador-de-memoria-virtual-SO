@@ -59,7 +59,7 @@ const char* trimString(const char* string, int n){
     return (const char*)resultTrim;
 }
 
-const char* strcatcat(const char* cat1, const char* cat2){
+char* strcatcat(const char* cat1, const char* cat2){
     if(cat1 == NULL || cat2 == NULL){
         printf("\n - strcatcat() -> Um ou mais parametros nulos passados. -");
         return NULL;
@@ -74,7 +74,7 @@ const char* strcatcat(const char* cat1, const char* cat2){
     strcat(resultCat, cat2);
 
     // Retorna a string concatenada.
-    return (const char*)resultCat;
+    return resultCat;
 }
 
 void copyFile(FILE* to, const char* from){

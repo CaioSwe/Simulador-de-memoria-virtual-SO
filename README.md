@@ -9,10 +9,19 @@ Alunos:
 
 # Compilação
 C:\ ... \Simulador-de-memoria-virtual-SO
-.bash (compilador utilizado | mingw32-make)
+mingw32-make
 ./tso files/addresses.txt (número de quadros) (algoritmo de sibstituição)
 
 
 
 # Clean
 mingw32-make clean
+
+
+
+# Valgrind
+Abrir Powershell
+Digitar "wsl"
+Digitar "cd OneDrive/Documentos/GitHub/Simulador-de-memoria-virtual-SO"
+Compilar com o Makefile: "make"
+Executar "valgrind -s --leak-check=full --show-leak-kinds=all --track-origins=yes ./tso files/addresses.txt (número de quadros) (algoritmo de sibstituição)"
