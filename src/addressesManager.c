@@ -73,12 +73,12 @@ void processAddrFile(MemoryManager memMng, const char* fPathAddr, FILE* fSaida){
     float avgMiss = (float)totalAccesses / (float)miss;
     float avgFault = (float)totalAccesses / (float)fault;
 
-    fprintf(fSaida, "\n=== STATISTICS OF EXECUTION ===\n\n");
+    fprintf(fSaida, "\n\n\n=== STATISTICS OF EXECUTION ===\n\n");
     fprintf(fSaida, "%s - %s - %s\n", "TLB hits", "TLB misses", "Page faults");
     fprintf(fSaida, "%8d - %10d - %11d\n\n", hit, miss, fault);
     fprintf(fSaida, "%-30s: %3.1f\n", "Avg accesses per TLB miss", avgMiss);
     fprintf(fSaida, "%-30s: %3.1f\n", "Avg accesses per page fault", avgFault);
-    fprintf(fSaida, "\n===============================\n\n");
+    fprintf(fSaida, "\n===============================\n");
 
     fclose(addrFile);
 }

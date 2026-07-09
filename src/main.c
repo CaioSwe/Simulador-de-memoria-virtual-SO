@@ -272,16 +272,20 @@ int main(int argc, char* argv[]){
     char* fPathAddr = strcatcat(paths[ADDR], "");
 
     // 3.2: Define o caminho do arquivo de saída (correct.txt) para armazenar os resultados da execução do programa.
-    const char* fOutputPathAddr = "./files/correct.txt";
+    // const char* fOutputPathAddr = "./files/correct.txt";
+    const char* fOutputPathAddr = "correct.txt";
 
     // 3.3: Abre o caminho do output (correct.txt) em modo de escrita
     FILE* fSaida = fopen(fOutputPathAddr, "w");
     printf("Writing on file: %s\n", fOutputPathAddr);
     fprintf(fSaida, " == BEGINING OF EXECUTION == \n\n\n\n");
+    fprintf(fSaida, "Addresses file: \t\t\t%s\n", paths[ADDR]);
+    fprintf(fSaida, "Frames Quantity: \t\t\t%s\n", paths[FRAMES]);
+    fprintf(fSaida, "Page Replacement Algorithm: \t%s\n\n\n\n", paths[SUBSTYPE]);
 
     processAddrFile(memMng, fPathAddr, fSaida);
     
-    fprintf(fSaida, " == END OF EXECUTION == ");
+    fprintf(fSaida, " \n\n\n\n\n== END OF EXECUTION == ");
     fclose(fSaida);
     /*##################################################################################################################*/
 
