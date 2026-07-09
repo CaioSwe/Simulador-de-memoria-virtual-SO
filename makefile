@@ -90,7 +90,7 @@ clean:
 	#@echo.
 
 	@echo Limpando os arquivos objetos e o executavel...
-	$(RM) ".\files\correct.txt"
+	$(RM) "files/correct.txt"
 
 	#@echo.
 
