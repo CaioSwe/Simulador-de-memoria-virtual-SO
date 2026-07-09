@@ -221,7 +221,7 @@ int main(int argc, char* argv[]){
      * 
      * 5. O endereço do gerenciador de memória é impresso na tela para fins de depuração.
      */
-    const char* binPath = "./files/BACKING_STORE.bin";
+    const char* binPath = "./src/BACKING_STORE.bin";
     int frameCount = atoi(paths[FRAMES]); 
     int frameSize  = 256; // Tamanho do quadro de memória (em bytes) = 256 bytes = 2^8 bytes
     MemoryManager memMng = memoryManager_Init(binPath, frameCount, frameSize);
