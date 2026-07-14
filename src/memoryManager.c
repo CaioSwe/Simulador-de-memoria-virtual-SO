@@ -244,18 +244,15 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
 
     // 2: Aloca o info que será retornado
     InfoStr* info = (InfoStr*)malloc(sizeof(InfoStr));
-    if(checkAllocation(info, "msg de erro")) return NULL;
+    if(checkAllocation(info, "Erro ao alocar InfoStr")) return NULL;
 
-    PageInfoStr pInfoLocal;
-    
     // 3: Calcula o número da página a partir do endereço virtual fornecido e o armazena na estrutura de informações da página
     // O cálculo é feito usando o tamanho do quadro de memória (frameSize) e armazena no campo correspondente da estrutura InfoStr
     // pageNumber = address >> log2(frameSize) = address >> 8 (se frameSize = 256 bytes)
     int pageNumber = address >> (int)log2(mMng->frameSize);
     info->information.pageNumber = pageNumber;
-    pInfoLocal.pageNumber = pageNumber;
-    
-    PageInfoStr* pInfo = &pInfoLocal;
+    info->information.frameNumber = -1;
+    info->information.ValidatingBit = 0;
 
     // 4: Verifica se a TLB está presente no gerenciador de memória e armazena o resultado em uma variável booleana
     bool hasTLB = (mMng->TLB != NULL);
@@ -266,19 +263,18 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         PageReplacementAlgorithm repTLB = mMng->TLB->fPageReplacementAlg;
         Structure tlbStructure = mMng->TLB->dataStructure;
 
-        // 5.2: Verifica se a página está presente na TLB usando o algoritmo de substituição de páginas
-        if(repTLB(tlbStructure, pInfo, false, NULL)){
+        // 5.2: Verifica se a página está presente na TLB usando o algoritmo de substituição de página
+        if(repTLB(tlbStructure, &(info->information), false, NULL)){
             // Atualiza as informações da estrutura InfoStr
             // Com o resultado do acesso (ACCESS_TLB_HIT), o número do quadro correspondente e o bit de validação
             info->aResult = ACCESS_TLB_HIT;
-            info->information.frameNumber = mMng->pageTable->entries[pageNumber].frameNumber;
+            
+            int frame = mMng->pageTable->entries[pageNumber].frameNumber;
+            info->information.frameNumber = frame;
             info->information.ValidatingBit = 1;
 
-            pInfo->frameNumber = info->information.frameNumber;
-            pInfo->ValidatingBit = 1;
-
-            // Se a página estiver na TLB, promove a página na TLB (atualiza a prioridade) 
-            repTLB(tlbStructure, pInfo, true, NULL);
+            // Se a página estiver na TLB, promove a página na TLB (atualiza a prioridade)
+            repTLB(tlbStructure, &(info->information), true, NULL);
 
             // Retorna a estrutura InfoStr contendo as informações da página acessada e o resultado do acesso
             return info;
@@ -289,18 +285,28 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
     // 6.1: Obtém o algoritmo de substituição de páginas da tabela de páginas e a estrutura de dados correspondente
     PageReplacementAlgorithm repPT = mMng->pageTable->fPageReplacementAlg;
     Structure ptStructure = mMng->pageTable->dataStructure;
+    
     // 6.2: Obtém as informações da página correspondente ao número da página calculado anteriormente
-    PageInfoStr entrada = mMng->pageTable->entries[pageNumber]; 
+    PageInfoStr* entradaPT = &(mMng->pageTable->entries[pageNumber]); 
+
     // 6.3: Obtem o bit de validação da entrada da tabela de páginas para verificar se a página está na memória
-    bool isInMemory = entrada.ValidatingBit;
+    bool isInMemory = entradaPT->ValidatingBit;
 
     // 7: Verifica se a página está na memória
     if(isInMemory){
         // 7.1: Atualiza as informações da estrutura InfoStr
         // Com o resultado do acesso (ACCESS_PAGE_TABLE_HIT), o número do quadro correspondente e o bit de validação
         info->aResult = ACCESS_PAGE_TABLE_HIT;
-        info->information.frameNumber = entrada.frameNumber;
+        info->information.frameNumber = entradaPT->frameNumber;
         info->information.ValidatingBit = 1;
+
+        // Se houve PageTable hit e existe uma TLB, atualiza a TLB.
+        if(hasTLB){
+            PageReplacementAlgorithm repTLB = mMng->TLB->fPageReplacementAlg;
+            Structure tlbStructure = mMng->TLB->dataStructure;
+            
+            repTLB(tlbStructure, &(info->information), true, NULL);
+        }
 
         // 7.3: Retorna a estrutura InfoStr contendo as informações da página acessada e o resultado do acesso
         return info;
@@ -309,55 +315,58 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
     // 8: Se a página não está na memória, trata-se de uma page fault,
     // inicializa o número do quadro como -1, indicando que ainda não foi atribuído um quadro para a página
     int frameNumber = -1;
+    
     // 8.1: Verifica se a memória não está cheia
     if(mMng->currentAmountOfFrames < mMng->frameCount){
         // A memória não está cheia, então atribui o próximo quadro disponível à página
         frameNumber = mMng->currentAmountOfFrames;
+        mMng->currentAmountOfFrames += 1;
 
         // Atualiza as informações da estrutura InfoStr
         // Com o número do quadro atribuído e o bit de validação definido como 1 (válido)
         info->information.frameNumber = frameNumber;
         info->information.ValidatingBit = 1;
 
-        pInfo->frameNumber = frameNumber;
-        pInfo->ValidatingBit = 1;
+        entradaPT->frameNumber = frameNumber;
+        entradaPT->ValidatingBit = 1;
 
         // Insere a página na memória usando o algoritmo de substituição de páginas da tabela de páginas
-        repPT(ptStructure, pInfo, true, NULL);
-
-        // Incrementa a quantidade atual de quadros na memória, indicando que um novo quadro foi ocupado
-        mMng->currentAmountOfFrames += 1;
+        repPT(ptStructure, entradaPT, true, NULL);
     }
-    // 8.2: A memória está cheia, então é necessário substituir uma página existente na memória
     else{
         Info removedInfo = NULL;
 
-        repPT(ptStructure, &info->information, true, &removedInfo); 
+        repPT(ptStructure, entradaPT, true, &removedInfo); 
 
-        frameNumber     = ((PageInfoStr*)removedInfo)->frameNumber;
-        int removedPage = ((PageInfoStr*)removedInfo)->pageNumber;
+        if(removedInfo != NULL){
+            frameNumber = ((PageInfoStr*)removedInfo)->frameNumber;
+            int removedPage = ((PageInfoStr*)removedInfo)->pageNumber;
 
-        mMng->pageTable->entries[removedPage].frameNumber = -1;
-        mMng->pageTable->entries[removedPage].ValidatingBit = 0;
+            mMng->pageTable->entries[removedPage].frameNumber = -1;
+            mMng->pageTable->entries[removedPage].ValidatingBit = 0;
 
-        if(hasTLB && mMng->TLB->removeFunc != NULL){
-            PageInfoStr dummy;
-            dummy.pageNumber = removedPage; 
+            if(hasTLB && mMng->TLB->removeFunc != NULL){
+                PageInfoStr dummy;
+                dummy.pageNumber = removedPage; 
 
-            Info f = mMng->TLB->removeFunc(mMng->TLB->dataStructure, &dummy, memoryManager_comparePagesInfo);
-            if(f != NULL) memoryManager_freePageInfo(f, NULL);
+                Info f = mMng->TLB->removeFunc(mMng->TLB->dataStructure, &dummy, memoryManager_comparePagesInfo);
+                if(f != NULL){
+                    memoryManager_freePageInfo(f, NULL);
+                }
+            }
+
+            free(removedInfo);
         }
 
-        if(removedInfo != NULL) {free(removedInfo);}
+        info->information.frameNumber = frameNumber;
+        info->information.ValidatingBit = 1;
+
+        entradaPT->frameNumber = frameNumber;
+        entradaPT->ValidatingBit = 1;
     }
 
     // 9: Insere a página na memória física (physicalMemory) do gerenciador de memória
     memoryManager_insertPageInMemory(mMng, pageNumber, frameNumber);
-
-    // 10: Atualiza a entrada da tabela de páginas para a página acessada, 
-    // definindo o número do quadro atribuído e o bit de validação como 1 (válido)
-    mMng->pageTable->entries[pageNumber].frameNumber = frameNumber;
-    mMng->pageTable->entries[pageNumber].ValidatingBit = 1;
 
     // 11: Se a TLB estiver presente, 
     // insere a página acessada na TLB usando o algoritmo de substituição de páginas da TLB
@@ -367,7 +376,7 @@ Info memoryManager_accessAddress(MemoryManager memMng, int address){
         Structure tlbStructure = mMng->TLB->dataStructure;
 
         // 11.2: Insere a página acessada na TLB usando o algoritmo de substituição de páginas da TLB
-        repTLB(tlbStructure, pInfo, true, NULL);
+        repTLB(tlbStructure, &(info->information), true, NULL);
     }
 
     // 12: Atualiza as informações da estrutura InfoStr com o resultado do acesso (ACCESS_PAGE_FAULT)

@@ -124,7 +124,7 @@ void promoteElementeInPriorityQueue(PriorityQueue priorityQueue, PriorityItem it
         if(compareFunc(pq->itens[i].pItem, item)){
             // Caso ache, muda a prioridade e ordena o heap.
             double prevPrio = pq->itens[i].prioridade;
-            pq->itens[i].prioridade += newPriority;
+            pq->itens[i].prioridade = newPriority;
             
             if(newPriority < prevPrio) checkPriorityUp(pq, i);
             else checkPriorityDown(pq, i);
